@@ -3,9 +3,11 @@ const systemUserModel = require("../models/systemUsers");
 
 const userAuth = async (req, res, next) => {
   try {
-    const { token } = req.cookies;
+    // const { token } = req.cookies;
+    const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
+
     if (!token) {
-      throw new Error("Invalid token");
+      throw new Error("Invalid tokengg");
     }
 
     // Verify the token and extract user ID
@@ -19,7 +21,7 @@ const userAuth = async (req, res, next) => {
     if (!user) {
       throw new Error("User does not exist");
     }
-    if (!user.role === "Admin" ||!user.role === "Super Admin") {
+    if (!user.role === "Admin" || !user.role === "Super Admin") {
       throw new Error("Invalid user");
     }
     // Attach user to request object
@@ -31,4 +33,4 @@ const userAuth = async (req, res, next) => {
   }
 };
 
-module.exports = { userAuth};
+module.exports = { userAuth };
