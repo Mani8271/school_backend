@@ -12,7 +12,8 @@ ClassRoute.post("/add-class",userAuth,async (req, res) => {
       await AddClass.save();
       res.send("Added class Successfully");
     } catch (error) {
-      res.status(400).send("Error adding the class");
+      console.error("Add Class Error:", error.message);
+    res.status(400).send({ error: error.message });
     }
   }
 );
@@ -28,7 +29,7 @@ ClassRoute.patch("/update-class", userAuth, async (req, res) => {
     }
 
     // Find the bus by ID first
-    let Class = await BusAssignModel.findById(ClassId);
+    let Class = await ClassesModel.findById(ClassId);
     if (!Class) {
       return res.status(404).json({ error: " class not found" });
     }

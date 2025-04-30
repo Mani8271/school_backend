@@ -7,7 +7,7 @@ const userAuth = async (req, res, next) => {
     const token = req.cookies.token || (req.headers.authorization && req.headers.authorization.split(' ')[1]);
 
     if (!token) {
-      throw new Error("Invalid tokengg");
+      throw new Error("Invalid token");
     }
 
     // Verify the token and extract user ID
