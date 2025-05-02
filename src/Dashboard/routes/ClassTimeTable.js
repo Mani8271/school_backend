@@ -1,17 +1,20 @@
 const express = require("express");
 const ClassTimeTableRoute = express.Router();
 const {isValidObjectId} = require("../../utils/validation");
-const ClassTimeTableModel = require("../../models/Classes");
+const ClassTimeTableModel = require("../../models/ClassTimeTable");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
 
 
 ClassTimeTableRoute.post("/add-class-timetable",userAuth,async (req, res) => {
+  console.log(req.body);
     try {
       const AddClassTimeTable = new ClassTimeTableModel(req.body);
+
       await AddClassTimeTable.save();
       res.send("Added class time table Successfully");
     } catch (error) {
+      console.error("Error adding timetable: ", error);
       res.status(400).send("Error adding the class time table");
     }
   }

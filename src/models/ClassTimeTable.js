@@ -5,10 +5,7 @@ const ClassTimeTableSchema = new mongoose.Schema(
     class: {
       type: String,
     },
-    date: {  // ✅ Changed to Date type
-      type: Date,
-     
-    },
+  
     section: {
       type: String,
      

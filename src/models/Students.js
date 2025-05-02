@@ -31,6 +31,15 @@ const StudentsSchema = new mongoose.Schema({
         type: String,
         
     },
+    rollno: {
+        type: String,
+        
+    },
+    bloodgroup: {
+        type: String,
+        
+        enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"],
+    },
     city: {
         type: String,
         
