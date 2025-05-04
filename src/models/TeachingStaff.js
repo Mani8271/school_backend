@@ -53,11 +53,11 @@ const TeachersSchema = new mongoose.Schema(
     {
       type:String
     },
-    profileImage:
-    {
-      type:String,
-      required:true
-    },
+    // profileImage:
+    // {
+    //   type:String,
+    //   required:true
+    // },
     ProfilePicture:
     {
       type:String

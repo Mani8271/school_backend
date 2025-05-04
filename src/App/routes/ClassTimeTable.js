@@ -56,6 +56,7 @@ ClassTimeTableRoute.delete("/delete-class-timetable",  async (req, res) => {
   try {
     const timetableId = req.body._id;
     // Ensure `_id` is a valid MongoDB ObjectId
+    console.log(timetableId)
     if (!isValidObjectId(timetableId)) {
       return res.status(400).json({ error: "Invalid ID format" });
     }

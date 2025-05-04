@@ -41,6 +41,7 @@ TeachersRoute.post("/add-teacher", userAuth,upload.single("ProfilePicture"), asy
     await AddClassTimeTable.save();
     res.send("Added teacher Successfully");
   } catch (error) {
+    console.error("Error adding the teacher:--------------->", error.message);
     res.status(400).send("Error adding the class time table");
   }
 });
