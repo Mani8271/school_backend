@@ -8,6 +8,9 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer");
 const path = require("path");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+
 
 
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
@@ -116,7 +119,7 @@ TeachersRoute.patch("/update-teacher", userAuth, upload.single("ProfilePicture")
     });
    if (req.body.password) {
       const salt = await bcrypt.genSalt(10);
-      staff.password = await bcrypt.hash(req.body.password, salt);
+    teacher.password = await bcrypt.hash(req.body.password, salt);
     } 
     // Save updated teacher data
     await teacher.save();
@@ -127,7 +130,7 @@ TeachersRoute.patch("/update-teacher", userAuth, upload.single("ProfilePicture")
     });
 
   } catch (error) {
-    console.error("Error updating teacher:", error);
+    console.error("Error updating teacher:", error.message);
     return res.status(500).json({ error: "Something went wrong" });
   }
 });
