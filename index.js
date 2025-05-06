@@ -41,7 +41,6 @@ const TeachingStaff = require("./src/Dashboard/routes/TeachingStaff")
 const StaffLeaveRequests = require("./src/Dashboard/routes/StaffLeaves")
 const NoticeBoard = require("./src/Dashboard/routes/NoticeBoard")
 
-
 const holidays = require("./src/App/routes/Holidays");
 const busList = require("./src/App/routes/BusList");
 const classes = require("./src/App/routes/Classes");
@@ -67,7 +66,8 @@ const complaints = require("./src/App/routes/Complaints");
 const assignHomeworks = require("./src/App/routes/AssignHomework");
 const studentLeaveRequests = require("./src/App/routes/StudentLeaveRequets");
 const studentHomework = require("./src/App/routes/StudentHomework");
-
+const Studentattendances = require("./src/App/routes/StudentAttendance")
+const Teachercomplaints =require("./src/App/routes/TeacherComplaints")
 
 
 app.use("/systemUsers",systemUser)
@@ -122,6 +122,8 @@ app.use("/app/complaints", complaints);
 app.use("/app/assignhomework", assignHomeworks);
 app.use("/app/studentleaves", studentLeaveRequests);
 app.use("/app/studenthomework", studentHomework);
+app.use("/app/Teachercomplaints",Teachercomplaints );
+app.use("/app/studentattendance",Studentattendances );
 
 ConnectDB().then(() => {
   try {
