@@ -46,8 +46,21 @@ EventsRoute.post( "/add-event", userAuth, upload.single("eventImage"), async (re
       const AddEvent = new EventsModel(req.body);
       await AddEvent.save();
       res.send("Added Event Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the event");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in adding event";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -95,11 +108,24 @@ EventsRoute.patch("/update-event-data", userAuth, upload.single("eventImage"), a
           event,
       });
 
-  } catch (error) {
-      console.error("Error updating event:", error);
-      return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in updating event";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
+
 EventsRoute.delete("/delete-event-data", userAuth, async (req, res) => {
   try {
     const eventId = req.body._id;
@@ -109,8 +135,21 @@ EventsRoute.delete("/delete-event-data", userAuth, async (req, res) => {
     }
     await EventsModel.findByIdAndDelete(eventId);
     res.send("event data deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the event data");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "An unexpected error occurred";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -118,8 +157,21 @@ EventsRoute.get("/search-event-data", userAuth, async (req, res) => {
   try {
     const GetEventdata = await EventsModel.findOne(req.body);
     res.send(GetEventdata);
-  } catch (error) {
-    res.status(400).send("event data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "event not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -127,8 +179,21 @@ EventsRoute.get("/event-data", userAuth, async (req, res) => {
   try {
     const GetEventdata = await EventsModel.findOne(req.body);
     res.send(GetEventdata);
-  } catch (error) {
-    res.status(400).send("event data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "event not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -136,8 +201,21 @@ EventsRoute.get("/events-data", userAuth, async (req, res) => {
   try {
     const GetEventdata = await EventsModel.find();
     res.send(GetEventdata);
-  } catch (error) {
-    res.status(400).send("event data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "event not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

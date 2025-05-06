@@ -13,8 +13,21 @@ StaffLeavesRoute.post( "/add-staff-leave", userAuth,async (req, res) => {
       const AddLeaves= new StaffLeavesModel(req.body);
       await AddLeaves.save();
       res.send("Added LeavesSuccessfully");
-    } catch (error) {
-      res.status(400).send("Error adding the leave");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in add staff leave";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -37,9 +50,21 @@ StaffLeavesRoute.patch("/update-leaves",userAuth,async (req, res) => {
         message: "Leaves data updated successfully",
         leaves,
       });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Something went wrong" });
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in update staff leave";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -53,8 +78,21 @@ StaffLeavesRoute.delete("/delete-leaves", userAuth, async (req, res) => {
     }
     await StaffLeavesModel.findByIdAndDelete(leavesId);
     res.send("Leaves data deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the Leaves data");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in delete leave";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -62,17 +100,43 @@ StaffLeavesRoute.get("/search-leaves", userAuth, async (req, res) => {
   try {
     const Getleavesdata = await StaffLeavesModel.findOne(req.body);
     res.send(Getleavesdata);
-  } catch (error) {
-    res.status(400).send("Leavesdata not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "leave data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
-StaffLeavesRoute.get("/leaves-data", userAuth, async (req, res) => {
+StaffLeavesRoute.get("/leave-data", userAuth, async (req, res) => {
   try {
     const Getleavesdata = await StaffLeavesModel.findOne(req.body);
     res.send(Getleavesdata);
-  } catch (error) {
-    res.status(400).send("Leavesdata not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "leave data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -80,8 +144,21 @@ StaffLeavesRoute.get("/all-leaves-data", userAuth, async (req, res) => {
   try {
     const Getleavesdata = await StaffLeavesModel.find();
     res.send(Getleavesdata);
-  } catch (error) {
-    res.status(400).send("Leavesdata not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "leaves data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

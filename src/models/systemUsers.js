@@ -14,13 +14,11 @@ const systemUserSchema = new mongoose.Schema({
   },
   email: {
     type: String,
-    lowercase: true,
     unique: true,
-    trim: true,
-  },
+    match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"], // Email validation
+},
   mobileNumber: {
     type: Number,
-    
     unique:true,
     validate: {
       validator: function (v) {

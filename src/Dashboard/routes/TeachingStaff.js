@@ -8,9 +8,8 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer");
 const path = require("path");
-const bcrypt = require("bcryptjs");
+const bcrypt =require("bcrypt");
 const jwt = require("jsonwebtoken");
-
 
 
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
@@ -40,12 +39,26 @@ var upload = multer({
 
 TeachersRoute.post("/add-teacher", userAuth,upload.single("ProfilePicture"), async (req, res) => {
   try {
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
+        req.body.password = hashPassword;
     const AddClassTimeTable = new TeachersModel(req.body);
     await AddClassTimeTable.save();
     res.send("Added teacher Successfully");
   } catch (error) {
-    console.error("Error adding the teacher:--------------->", error.message);
-    res.status(400).send("Error adding the class time table");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in adding teacher";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -76,8 +89,20 @@ TeachersRoute.post("/login", async (req, res) => {
     res.cookie("token", token, { httpOnly: true }); // Secure cookie
     res.json({ message: "Login successful", token });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ message: "Internal Server Error", error });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "login failed";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -130,8 +155,20 @@ TeachersRoute.patch("/update-teacher", userAuth, upload.single("ProfilePicture")
     });
 
   } catch (error) {
-    console.error("Error updating teacher:", error.message);
-    return res.status(500).json({ error: "Something went wrong" });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in update teacher data";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -145,7 +182,20 @@ TeachersRoute.delete("/delete-teacher", userAuth, async (req, res) => {
     await TeachersModel.findByIdAndDelete(teacherId);
     res.send("teacher deleted successfully");
   } catch (error) {
-    res.status(400).send("Error deleting  the teacher");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in delete teacher data";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -154,7 +204,20 @@ TeachersRoute.get("/search-teacher", userAuth, async (req, res) => {
     const GetTeacher = await TeachersModel.findOne(req.body);
     res.send(GetTeacher);
   } catch (error) {
-    res.status(400).send("teacher not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "teacher data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -163,7 +226,20 @@ TeachersRoute.get("/teacher-data", userAuth, async (req, res) => {
     const GetTeacher = await TeachersModel.findOne(req.body);
     res.send(GetTeacher);
   } catch (error) {
-    res.status(400).send("teacher data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "teacher data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -171,8 +247,21 @@ TeachersRoute.get("/teachers-data", userAuth, async (req, res) => {
   try {
     const GetTeacher = await TeachersModel.find();
     res.send(GetTeacher);
-  } catch (error) {
-    res.status(400).send("teachers data not found");
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "teachers data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -191,7 +280,20 @@ TeachersRoute.post("/forgot-password", async (req, res) => {
       await TeachersModel.updateOne({ email }, { $set: { password: hashedPassword } });
       res.json({ message: "Password updated successfully" });
   } catch (error) {
-      res.status(500).json({ message: "Error updating password", error });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "An unexpected error occurred";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -239,11 +341,21 @@ TeachersRoute.post( "/bulk-upload", userAuth, upload.single("file"), async (req,
       return res
         .status(200)
         .json(successResponse("Teaching staff uploaded successfully"));
-    } catch (error) {
-      console.error("Error in bulk upload:", error);
-      return res
-        .status(500)
-        .json(errorResponse("Error processing teacher upload"));
+    }catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "An unexpected error occurred";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );

@@ -10,8 +10,21 @@ CommentsRoute.post("/add-comment",userAuth,async(req,res)=>
     try {
     const Comments = await CommentsModel(req.body);
     res.send("comment added successfully");
-    } catch (error) {
-        res.status(400).send("error in add comments")
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in adding comments";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
 })
 
@@ -32,9 +45,21 @@ CommentsRoute.patch("/update-comment",userAuth,async(req,res)=>
           message: "comment data updated successfully",
           comment,
         });
-      } catch (error) {
-        console.error("Error updating comment:", error);
-        return res.status(500).json({ error: "Something went wrong" });
+      }  catch (error) {
+        console.error("❌ Error:", { message: error.message });
+      
+        let msg = "An unexpected error occurred";
+      
+        if (error.code === 11000) {
+          const field = Object.keys(error.keyValue)[0];
+          msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+        } else if (error.name === "ValidationError") {
+          msg = Object.values(error.errors).map(err => err.message).join(", ");
+        } else if (error.message) {
+          msg = error.message;
+        }
+      
+        res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
       }
 })
 
@@ -47,8 +72,21 @@ CommentsRoute.delete("/delete-comment", userAuth, async (req, res) => {
     }
     await CommentsModel.findByIdAndDelete(commentId);
     res.send("comment deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the comment");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "An unexpected error occurred";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -56,8 +94,21 @@ CommentsRoute.get("/search-comment", userAuth, async (req, res) => {
   try {
     const GetComment = await CommentsModel.findOne(req.body);
     res.send(GetComment);
-  } catch (error) {
-    res.status(400).send("comment data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "An unexpected error occurred";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -65,8 +116,21 @@ CommentsRoute.get("/comment-data", userAuth, async (req, res) => {
   try {
     const GetCommentdata = await CommentsModel.findOne(req.body);
     res.send(GetCommentdata);
-  } catch (error) {
-    res.status(400).send("comment data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "An unexpected error occurred";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -74,8 +138,21 @@ CommentsRoute.get("/comments-data", userAuth, async (req, res) => {
   try {
     const GetCommentdata = await CommentsModel.find();
     res.send(GetCommentdata);
-  } catch (error) {
-    res.status(400).send("comments data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "An unexpected error occurred";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -83,8 +160,21 @@ CommentsRoute.get("/count-comments", userAuth, async (req, res) => {
     try {
         const commentCount = await CommentsModel.countDocuments();
         res.json({ count: commentCount });
-    } catch (error) {
-        res.status(400).json({ message: "Error fetching comment count", error });
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "An unexpected error occurred";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
 });
 

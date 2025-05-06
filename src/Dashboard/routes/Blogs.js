@@ -43,8 +43,21 @@ BlogsRoute.post("/add-blog",upload.single("blogImage"),userAuth,async (req, res)
       const AddBlog = new BlogsModel(req.body);
       await AddBlog.save();
       res.send("Added Blog Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the blog");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error adding blog";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -92,9 +105,21 @@ BlogsRoute.patch("/update-blog-data", upload.single("blogImage"), userAuth, asyn
       blog,
     });
 
-  } catch (error) {
-    console.error("Error updating blog:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error updating blog";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -107,8 +132,21 @@ BlogsRoute.delete("/delete-blog-data", userAuth, async (req, res) => {
     }
     await BlogsModel.findByIdAndDelete(blogId);
     res.send("blog data deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the blog data");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error deleting blog";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -116,8 +154,21 @@ BlogsRoute.get("/search-blog-data", userAuth, async (req, res) => {
   try {
     const GetBlogdata = await BlogsModel.findOne(req.body);
     res.send(GetBlogdata);
-  } catch (error) {
-    res.status(400).send("blog data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "blog data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -126,7 +177,20 @@ BlogsRoute.get("/blog", userAuth, async (req, res) => {
     const GetBlogdata = await BlogsModel.findOne(req.body);
     res.send(GetBlogdata);
   } catch (error) {
-    res.status(400).send("blog data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "blog data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -134,8 +198,21 @@ BlogsRoute.get("/blogs", userAuth, async (req, res) => {
   try {
     const GetBlogdata = await BlogsModel.find();
     res.send(GetBlogdata);
-  } catch (error) {
-    res.status(400).send("blog data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "blogs data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

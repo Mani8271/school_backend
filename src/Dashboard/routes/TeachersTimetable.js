@@ -11,8 +11,21 @@ TeachersTimetableRoute.post("/add-teacher-timetable",userAuth,async (req, res) =
       const AddTimeTable = new TimeTableModel(req.body);
       await AddTimeTable.save();
       res.send("Added teacher timetable Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the teacher time table");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in adding teacher time table";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -21,7 +34,7 @@ TeachersTimetableRoute.patch("/update-teacher-timetable", userAuth, async (req, 
   try {
     const timetableId = req.body._id;
     // Ensure `_id` is a valid MongoDB ObjectId
-    if (!isValidObjectId(teacherId)) {
+    if (!isValidObjectId(timetableId)) {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     // Find the bus by ID first
@@ -40,9 +53,21 @@ TeachersTimetableRoute.patch("/update-teacher-timetable", userAuth, async (req, 
       timetable,
     });
 
-  } catch (error) {
-    console.error("Error updating teacher timetable:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in update teacher time table";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -53,10 +78,23 @@ TeachersTimetableRoute.delete("/delete-teacher-timetable", userAuth, async (req,
     if (!isValidObjectId(timetableId)) {
       return res.status(400).json({ error: "Invalid ID format" });
     }
-    await TimeTableModel.findByIdAndDelete(teacherId);
+    await TimeTableModel.findByIdAndDelete(timetableId);
     res.send("teacher timetable deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the teacher");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in deleting teacher time table";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -65,7 +103,20 @@ TeachersTimetableRoute.get("/search-teacher-timetable", userAuth, async (req, re
     const GetTimetable = await TimeTableModel.findOne(req.body);
     res.send(GetTimetable);
   } catch (error) {
-    res.status(400).send("teacher timetable not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "teacher time table data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -73,8 +124,21 @@ TeachersTimetableRoute.get("/teacher-timetable-data", userAuth, async (req, res)
   try {
     const GetTimetable = await TimeTableModel.findOne(req.body);
     res.send(GetTimetable);
-  } catch (error) {
-    res.status(400).send("timetable data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "teacher time table data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -82,8 +146,21 @@ TeachersTimetableRoute.get("/teachers-timetable-data", userAuth, async (req, res
   try {
     const GetTimetable = await TimeTableModel.find();
     res.send(GetTimetable);
-  } catch (error) {
-    res.status(400).send("timetable  data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "teacher time table data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

@@ -1,57 +1,95 @@
+
 const mongoose = require("mongoose");
+
+// Function to get formatted date details
+const getCurrentDateDetails = () => {
+    const now = new Date();
+    return {
+        day: now.toLocaleDateString('en-US', { weekday: 'long' }), // e.g., "Monday"
+        date: now.getDate(),  // e.g., 17
+        month: now.toLocaleDateString('en-US', { month: 'long' }), // e.g., "March"
+        year: now.getFullYear() // e.g., 2025
+    };
+};
 const StudentsAttendanceSchema = new mongoose.Schema(
     {
-        name:{
-            type:String,
-            
+        teachername: {
+            type: String,
+
+        },
+        studentName: {
+            type: String,
+
         },
         class:
         {
-            type:String, 
+            type: String,
         },
         section:
         {
-            type:String,
-            
+            type: String,
+
         },
         rollNumber:
         {
-            type:String,
-            
+            type: String,
+
         },
         present:
         {
-            type:String,
-             
+            type: String,
+
         },
         absent:
         {
-            type:String,
-             
+            type: String,
+
         },
         onLeave:
         {
-            type:String,
-             
+            type: String,
+
         }
         ,
+        student:
+        {
+            type: String,
+
+        },
+          student:
+        {
+            type: String,
+
+        },
+        status:
+        {
+            type: String,
+
+        },
         holiday:
         {
-            type:String,
-             
+            type: String,
+
         },
-        year:
-        {
-            type:String,
-             
+        // Auto-generate Date Details
+        day: {
+            type: String,
+            default: () => getCurrentDateDetails().day,
         },
-        month:
-        {
-            type:String,
-             
-        }
+        date: {
+            type: Number,
+            default: () => getCurrentDateDetails().date,
+        },
+        month: {
+            type: String,
+            default: () => getCurrentDateDetails().month,
+        },
+        year: {
+            type: Number,
+            default: () => getCurrentDateDetails().year,
+        },
     },
     { timestamps: true }
 )
-
-module.exports = mongoose.model("StudentsAttendance",StudentsAttendanceSchema);
+StudentsAttendanceSchema.index({ studentName: 1, date: 1, month: 1, year: 1 }, { unique: true });
+module.exports = mongoose.model("StudentsAttendance", StudentsAttendanceSchema);

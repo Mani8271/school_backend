@@ -11,9 +11,21 @@ ClassRoute.post("/add-class",userAuth,async (req, res) => {
       const AddClass = new ClassesModel(req.body);
       await AddClass.save();
       res.send("Added class Successfully");
-    } catch (error) {
-      console.error("Add Class Error:", error.message);
-    res.status(400).send({ error: error.message });
+    }catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "Error Adding class";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -47,9 +59,21 @@ ClassRoute.patch("/update-class", userAuth, async (req, res) => {
       Class,
     });
 
-  } catch (error) {
-    console.error("Error updating class:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error update class";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -62,8 +86,21 @@ ClassRoute.delete("/delete-class", userAuth, async (req, res) => {
     }
     await ClassesModel.findByIdAndDelete(ClassId);
     res.send("class deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the class");
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error delete class";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -71,8 +108,21 @@ ClassRoute.get("/search-class", userAuth, async (req, res) => {
   try {
     const GetClass = await ClassesModel.findOne(req.body);
     res.send(GetClass);
-  } catch (error) {
-    res.status(400).send("class not found");
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "class data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -81,7 +131,20 @@ ClassRoute.get("/class-data", userAuth, async (req, res) => {
     const GetClass = await ClassesModel.findOne(req.body);
     res.send(GetClass);
   } catch (error) {
-    res.status(400).send("class data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "class data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -90,7 +153,20 @@ ClassRoute.get("/classes-data", userAuth, async (req, res) => {
     const GetClass = await ClassesModel.find();
     res.send(GetClass);
   } catch (error) {
-    res.status(400).send("classes data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "classes data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

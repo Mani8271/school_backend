@@ -1,22 +1,26 @@
+
 const mongoose = require("mongoose");
 
 const ConversationSchema = new mongoose.Schema(
     {
-        participants: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",  // Reference to the User model
-                required: true,
-            }
-        ],
-        lastMessage: {
+        eventImage: {
+            type: String,
+        },
+        eventName: {
             type: String, // Stores the last message for quick access
         },
-        lastMessageAt: {
-            type: Date, // Timestamp of the last message
-        }
-    },
-    { timestamps: true } // Automatically creates `createdAt` & `updatedAt`
+        date: {
+            type:String, // Timestamp of the last message
+        },
+        time:
+        {
+            type: String, 
+        },
+        description:
+        {
+            type: String, 
+        }    },
+    { timestamps: true } // Automatically creates createdAt & updatedAt
 );
 
-module.exports = mongoose.model("Conversation", ConversationSchema);
+module.exports = mongoose.model("events", ConversationSchema);

@@ -25,4 +25,4 @@ const ClassAttendanceSchema = new mongoose.Schema(
     { timestamps: true }
 )
 
-module.exports = mongoose.model("StudentsAttendance",ClassAttendanceSchema);
+module.exports = mongoose.model("ClassAttendance",ClassAttendanceSchema);

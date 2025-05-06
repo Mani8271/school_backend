@@ -11,8 +11,21 @@ SectionRoute.post("/add-section",userAuth,async (req, res) => {
       const AddSection = new SectionModel(req.body);
       await AddSection.save();
       res.send("Added section Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the sections");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in adding section";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -46,9 +59,21 @@ SectionRoute.patch("/update-section", userAuth, async (req, res) => {
       Section,
     });
 
-  } catch (error) {
-    console.error("Error updating sections:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg ="error in updating section";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -59,10 +84,23 @@ SectionRoute.delete("/delete-section", userAuth, async (req, res) => {
     if (!isValidObjectId(sectionId)) {
       return res.status(400).json({ error: "Invalid ID format" });
     }
-    await SectionModel.findByIdAndDelete(ClassId);
+    await SectionModel.findByIdAndDelete(sectionId);
     res.send("section deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the section");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in deleting section";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -70,8 +108,21 @@ SectionRoute.get("/search-section", userAuth, async (req, res) => {
   try {
     const GetSection = await SectionModel.findOne(req.body);
     res.send(GetSection);
-  } catch (error) {
-    res.status(400).send("section not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "section data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -79,8 +130,21 @@ SectionRoute.get("/section-data", userAuth, async (req, res) => {
   try {
     const GetSection = await SectionModel.findOne(req.body);
     res.send(GetSection);
-  } catch (error) {
-    res.status(400).send("section data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "section data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -89,7 +153,20 @@ SectionRoute.get("/sections-data", userAuth, async (req, res) => {
     const GetSection = await SectionModel.find();
     res.send(GetSection);
   } catch (error) {
-    res.status(400).send("sections data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "sections data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

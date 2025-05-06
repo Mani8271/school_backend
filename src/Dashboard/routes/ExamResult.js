@@ -29,8 +29,21 @@ ExamResultRoute.post("/add-exam-result",userAuth,async (req, res) => {
       const AddExamResult = new ExamResultModel(req.body);
       await AddExamResult.save();
       res.send("Added exam result Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the exam result");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in adding exam result";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -63,9 +76,21 @@ ExamResultRoute.patch("/update-exam-result", userAuth, async (req, res) => {
       results,
     });
 
-  } catch (error) {
-    console.error("Error updating exam result:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in updating exam result";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -78,8 +103,21 @@ ExamResultRoute.delete("/delete-exam-result", userAuth, async (req, res) => {
     }
     await ExamResultModel.findByIdAndDelete(resultId);
     res.send("exam result deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the exam result");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in deleting exam result";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -87,8 +125,21 @@ ExamResultRoute.get("/search-exam-result", userAuth, async (req, res) => {
   try {
     const Getexamresult = await ExamResultModel.findOne(req.body);
     res.send(Getexamresult);
-  } catch (error) {
-    res.status(400).send("exam result not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "exam result not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -97,7 +148,20 @@ ExamResultRoute.get("/exam-result-data", userAuth, async (req, res) => {
     const Getexamresult = await ExamResultModel.findOne(req.body);
     res.send(Getexamresult);
   } catch (error) {
-    res.status(400).send("exam result data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "exam result not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -106,7 +170,20 @@ ExamResultRoute.get("/exams-results-data", userAuth, async (req, res) => {
     const Getexamresult = await ExamResultModel.find();
     res.send(Getexamresult);
   } catch (error) {
-    res.status(400).send("exams data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "exams result data";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -147,9 +224,21 @@ ExamResultRoute.post("/bulk-upload", userAuth, upload.single("file"), async (req
       );
 
       return res.status(200).json(successResponse("Exam results uploaded successfully"));
-  } catch (error) {
-      console.error("Error in bulk upload:", error);
-      return res.status(500).json(errorResponse("Error processing exam results upload"));
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in upload csv";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

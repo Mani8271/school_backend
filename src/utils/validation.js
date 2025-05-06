@@ -309,6 +309,71 @@ const validateEditNoticeboardData = (req) => {
   }
   return true;
 };
+
+const validateSystemUserData = (req) => {
+  const errors = [];
+
+  const {
+    firstName,
+    lastName,
+    email,
+    mobileNumber,
+    userTitle,
+    address,
+    role,
+    status,
+    password,
+  } = req.body;
+
+  // Validate firstName
+  if (!firstName || typeof firstName !== "string" || firstName.trim().length < 4 || firstName.trim().length > 50) {
+    errors.push("First name must be between 4 and 50 characters.");
+  }
+
+  // Validate lastName (optional)
+  if (lastName && typeof lastName !== "string") {
+    errors.push("Last name must be a string.");
+  }
+
+  // Validate email
+  const emailRegex = /^\S+@\S+\.\S+$/;
+  if (!email || !emailRegex.test(email)) {
+    errors.push("Please enter a valid email address.");
+  }
+
+  // Validate mobile number
+  if (!mobileNumber || !/^[0-9]{10}$/.test(mobileNumber)) {
+    errors.push("Mobile number must be a 10-digit number.");
+  }
+
+  // Validate user title
+  if (!["Mr", "Mrs", "Miss"].includes(userTitle)) {
+    errors.push("User title must be 'Mr', 'Mrs', or 'Miss'.");
+  }
+
+  // Validate role
+  if (!["Super Admin", "Admin"].includes(role)) {
+    errors.push("Role must be 'Super Admin' or 'Admin'.");
+  }
+
+  // Validate status
+  if (!["Active", "Inactive", "Pending"].includes(status)) {
+    errors.push("Status must be 'Active', 'Inactive' or 'Pending'.");
+  }
+
+  // Validate password
+  if (!password || password.length < 6) {
+    errors.push("Password is required and must be at least 6 characters long.");
+  }
+
+  // If errors found, throw
+  if (errors.length > 0) {
+    throw new Error(errors.join(" "));
+  }
+
+  return true;
+};
+
 const isValidObjectId = (id) => {
   return mongoose.Types.ObjectId.isValid(id);
 };
@@ -333,5 +398,6 @@ module.exports = {
   validateEditAttendanceData,
   validateEditStaffLeavesData,
   validateEditNoticeboardData,
-  validateEditFeesData
+  validateEditFeesData,
+  validateSystemUserData
 };

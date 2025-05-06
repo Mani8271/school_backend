@@ -8,6 +8,8 @@ const path = require("path");
 const fs = require("fs");
 const multer = require("multer");
 const storagePath = path.join(__dirname, "../../../src/storage/busstaffimages");
+const bcrypt =require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 
 if (!fs.existsSync(storagePath)) {
@@ -35,15 +37,38 @@ var upload = multer({
 
 
 BusStaffRoute.post("/add-bus-staff",userAuth,upload.fields([{ name: "profilePhoto" }, { name: "licensePhoto" }]),async (req, res) => {
-    try {
-      const AddBusStaffRoute = new BusStaffModel(req.body);
-      await AddBusStaffRoute.save();
-      res.send("Added Bus staff Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the bus staff");
+  try {
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
+      req.body.password = hashPassword;
+      if (req.files?.profilePhoto?.length > 0) {
+        req.body.profilePhoto = req.files.profilePhoto[0].filename;
+      }
+
+      if (req.files?.licensePhoto?.length > 0) {
+        req.body.licensePhoto = req.files.licensePhoto[0].filename;
+      }
+    const AddBusStaffRoute = new BusStaffModel(req.body);
+    await AddBusStaffRoute.save();
+    res.send("Added Bus staff Successfully");
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in creating bus staff";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
     }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
+}
 );
+
 
 BusStaffRoute.patch("/update-bus-staff", userAuth, upload.fields([{ name: "profilePhoto" }, { name: "licensePhoto" }]), async (req, res) => {
   try {
@@ -95,9 +120,21 @@ BusStaffRoute.patch("/update-bus-staff", userAuth, upload.fields([{ name: "profi
       busstaff,
     });
 
-  } catch (error) {
-    console.error("Error updating bus staff:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in updating bus staff";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -110,8 +147,21 @@ BusStaffRoute.delete("/delete-bus-staff", userAuth, async (req, res) => {
     }
     await BusStaffModel.findByIdAndDelete(busstaffId);
     res.send("bus staff deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the bus staff");
+  }   catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in deleting bus staff";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -119,8 +169,21 @@ BusStaffRoute.get("/search-bus-staff", userAuth, async (req, res) => {
   try {
     const GetBusStaffdata = await BusStaffModel.findOne(req.body);
     res.send(GetBusStaffdata);
-  } catch (error) {
-    res.status(400).send("bus staff not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "bus staff data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -128,8 +191,21 @@ BusStaffRoute.get("/bus-staff-data", userAuth, async (req, res) => {
   try {
     const GetBusStaffdata = await BusStaffModel.findOne(req.body);
     res.send(GetBusStaffdata);
-  } catch (error) {
-    res.status(400).send("bus staff not found");
+  }   catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "buses route not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -137,8 +213,21 @@ BusStaffRoute.get("/buses-staff-data", userAuth, async (req, res) => {
   try {
     const GetBusStaffdata = await BusStaffModel.find();
     res.send(GetBusStaffdata);
-  } catch (error) {
-    res.status(400).send("bus staff not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "buses staff data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

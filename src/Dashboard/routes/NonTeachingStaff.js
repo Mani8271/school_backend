@@ -1,14 +1,15 @@
 const express = require("express");
 const NonTeachingStaffRoute = express.Router();
 const {isValidObjectId, validateEditTeachersData, validateEditNonTeachersData} = require("../../utils/validation");
-const NonTeachingStaffModel = require("../../models/TeachingStaff");
+const NonTeachingStaffModel = require("../../models/NonTeachingStaff");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
 const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer");
 const path = require("path");
-
+const bcrypt =require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
 
@@ -37,6 +38,8 @@ var upload = multer({
 
 NonTeachingStaffRoute.post("/add-staff",userAuth,upload.single("ProfilePicture"),async (req, res) => {
     try {
+      const hashPassword = await bcrypt.hash(req.body.password, 10);
+        req.body.password = hashPassword;
       if (req.file) {
         // Store the relative file path in the database
         req.body.ProfilePicture = `${req.file.filename}`;
@@ -47,7 +50,20 @@ NonTeachingStaffRoute.post("/add-staff",userAuth,upload.single("ProfilePicture")
       await AddStaff.save();
       res.send("Added teacher Successfully");
     } catch (error) {
-      res.status(400).send("Error adding the staff");
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in adding staff";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -79,8 +95,20 @@ NonTeachingStaffRoute.post("/login", async (req, res) => {
     res.cookie("token", token, { httpOnly: true }); // Secure cookie
     res.json({ message: "Login successful", token });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ message: "Internal Server Error", error });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "login failed";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -129,8 +157,20 @@ NonTeachingStaffRoute.patch("/update-staff", userAuth, upload.single("ProfilePic
     });
 
   } catch (error) {
-    console.error("Error updating staff:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in updating staff";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -141,10 +181,23 @@ NonTeachingStaffRoute.delete("/delete-staff", userAuth, async (req, res) => {
     if (!isValidObjectId(staffId)) {
       return res.status(400).json({ error: "Invalid ID format" });
     }
-    await TeachersModel.findByIdAndDelete(staffId);
+    await NonTeachingStaffModel.findByIdAndDelete(staffId);
     res.send("staff deleted successfully");
   } catch (error) {
-    res.status(400).send("Error deleting  the staff");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in deleting staff data";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -153,7 +206,20 @@ NonTeachingStaffRoute.get("/search-staff", userAuth, async (req, res) => {
     const GetStaff = await NonTeachingStaffModel.findOne(req.body);
     res.send(GetStaff);
   } catch (error) {
-    res.status(400).send("staff not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "staff data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -162,7 +228,20 @@ NonTeachingStaffRoute.get("/staff-data", userAuth, async (req, res) => {
     const GetStaff = await NonTeachingStaffModel.findOne(req.body);
     res.send(GetStaff);
   } catch (error) {
-    res.status(400).send("staff data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "staff data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -171,7 +250,20 @@ NonTeachingStaffRoute.get("/all-staff-data", userAuth, async (req, res) => {
     const GetStaff = await NonTeachingStaffModel.find();
     res.send(GetStaff);
   } catch (error) {
-    res.status(400).send("teachers data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "staff data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -190,7 +282,20 @@ NonTeachingStaffRoute.post("/forgot-password", async (req, res) => {
       await NonTeachingStaffModel.updateOne({ email }, { $set: { password: hashedPassword } });
       res.json({ message: "Password updated successfully" });
   } catch (error) {
-      res.status(500).json({ message: "Error updating password", error });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in forgot password";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -231,9 +336,21 @@ NonTeachingStaffRoute.post("/bulk-upload", userAuth, upload.single("file"), asyn
       );
 
       return res.status(200).json(successResponse("Non-teaching staff uploaded successfully"));
-  } catch (error) {
-      console.error("Error in bulk upload:", error);
-      return res.status(500).json(errorResponse("Error processing non-teaching staff upload"));
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in bulk upload csv";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

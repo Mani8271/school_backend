@@ -10,8 +10,17 @@ ClassRoute.post("/add-class",async (req, res) => {
       const AddClass = new ClassesModel(req.body);
       await AddClass.save();
       res.send("Added class Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the class");
+    }catch (error) {
+      console.error("❌ Error occurred while saving class:", {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+  
+      res.status(400).json({
+        errors: [`Error saving the class: ${error.message}`],
+        status: "unprocessable_entity"
+      });
     }
   }
 );

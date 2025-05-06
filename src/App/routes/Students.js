@@ -47,8 +47,16 @@ StudentsRoute.post("/add-students", upload.single("ProfilePicture"), async (req,
       await AddStudents.save();
       res.send("Added Student Successfully");
   } catch (error) {
-      console.error("Error adding student:", error);
-      res.status(400).send("Error adding the student");
+    console.error("❌ Error occurred while saving student:", {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+    });
+
+    res.status(400).json({
+      errors: [`Error saving the student: ${error.message}`],
+      status: "unprocessable_entity"
+    });
   }
 });
 

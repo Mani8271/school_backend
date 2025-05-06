@@ -4,16 +4,16 @@ const noticeBoardSchema = new mongoose.Schema(
     {
         noticeTitle: {
             type: String,
-
+            
         },
         noticeDescription: {
             type: String,
-
+            
             trim: true
         },
         noticeDate: {  // Renamed from "Date" to "noticeDate"
             type: Date,
-
+            
         },
         time: {
             type: String
@@ -23,7 +23,7 @@ const noticeBoardSchema = new mongoose.Schema(
         }
     },
     {
-        timestamps: true
+      timestamps: true
     }
 );
 

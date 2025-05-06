@@ -1,7 +1,7 @@
 const express = require("express");
 const AttendanceRoute = express.Router();
 const {isValidObjectId,} = require("../../utils/validation");
-const AttendanceModel = require("../../models/Studentattendances");
+const AttendanceModel = require("../../models/StudentsAttendance");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
 const multer = require("multer");
@@ -9,18 +9,31 @@ const path = require("path")
 const fs = require("fs")
 
 
-AttendanceRoute.post("/add-attendance",userAuth,async (req, res) => {
+AttendanceRoute.post("/add-student-attendance",userAuth,async (req, res) => {
     try {
       const Addattendance = new AttendanceModel(req.body);
       await Addattendance.save();
       res.send("Added attendance Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the attendance");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in add student attendance";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
 
-AttendanceRoute.patch("/update-attendance-data", userAuth, async (req, res) => {
+AttendanceRoute.patch("/update-student-attendance-data", userAuth, async (req, res) => {
   try {
     const attendanceId = req.body._id;
     // Ensure `_id` is a valid MongoDB ObjectId
@@ -42,13 +55,25 @@ AttendanceRoute.patch("/update-attendance-data", userAuth, async (req, res) => {
       message: "attendance data updated successfully",
       attendance,
     });
-  } catch (error) {
-    console.error("Error updating attendance request:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in update student attendance";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
-AttendanceRoute.delete("/delete-attendance-data", userAuth, async (req, res) => {
+AttendanceRoute.delete("/delete-student-attendance-data", userAuth, async (req, res) => {
   try {
     const attendanceId = req.body._id;
     // Ensure `_id` is a valid MongoDB ObjectId
@@ -57,35 +82,87 @@ AttendanceRoute.delete("/delete-attendance-data", userAuth, async (req, res) => 
     }
     await AttendanceModel.findByIdAndDelete(attendanceId);
     res.send("attendance data deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the attendance request data");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in delete student attendance";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
-AttendanceRoute.get("/search-attendance-data", userAuth, async (req, res) => {
+AttendanceRoute.get("/search-student-attendance-data", userAuth, async (req, res) => {
+  try {
+    const Getattendancedata = await AttendanceModel.findOne(req.body);
+    res.send(Getattendancedata);
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "attendance data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+  }
+});
+
+AttendanceRoute.get("/student-attendance", userAuth, async (req, res) => {
   try {
     const Getattendancedata = await AttendanceModel.findOne(req.body);
     res.send(Getattendancedata);
   } catch (error) {
-    res.status(400).send("attendance request data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "attendance data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
-AttendanceRoute.get("/attendance", userAuth, async (req, res) => {
-  try {
-    const Getattendancedata = await AttendanceModel.findOne(req.body);
-    res.send(Getattendancedata);
-  } catch (error) {
-    res.status(400).send("attendance request data not found");
-  }
-});
-
-AttendanceRoute.get("/attendances", userAuth, async (req, res) => {
+AttendanceRoute.get("/student-attendances", userAuth, async (req, res) => {
   try {
     const Getattendancedata = await AttendanceModel.find();
     res.send(Getattendancedata);
-  } catch (error) {
-    res.status(400).send("attendance request data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "attendance data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

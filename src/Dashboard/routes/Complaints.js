@@ -10,8 +10,21 @@ ComplaintsRoute.post("/add-complaint",userAuth,async (req, res) => {
       const Addcomplaint = new ComplaintListModel(req.body);
       await Addcomplaint.save();
       res.send("Added complaint Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the complaint");
+    }   catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "buses route not found";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -40,9 +53,21 @@ ComplaintsRoute.patch("/update-complaint-data", userAuth, async (req, res) => {
       message: "complaint data updated successfully",
       complaint,
     });
-  } catch (error) {
-    console.error("Error updating complaint:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }   catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "buses route not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -55,8 +80,21 @@ ComplaintsRoute.delete("/delete-complaint-data", userAuth, async (req, res) => {
     }
     await ComplaintListModel.findByIdAndDelete(complaintId);
     res.send("complaint data deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the complaint data");
+  }   catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "buses route not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -64,8 +102,21 @@ ComplaintsRoute.get("/search-complaint-data", userAuth, async (req, res) => {
   try {
     const Getcomplaintdata = await ComplaintListModel.findOne(req.body);
     res.send(Getcomplaintdata);
-  } catch (error) {
-    res.status(400).send("complaint data not found");
+  }   catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "buses route not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -73,8 +124,21 @@ ComplaintsRoute.get("/complaint-data", userAuth, async (req, res) => {
   try {
     const Getcomplaintdata = await ComplaintListModel.findOne(req.body);
     res.send(Getcomplaintdata);
-  } catch (error) {
-    res.status(400).send("complaint data not found");
+  }   catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "buses route not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -82,8 +146,21 @@ ComplaintsRoute.get("/complaints-data", userAuth, async (req, res) => {
   try {
     const Getcomplaintdata = await ComplaintListModel.find();
     res.send(Getcomplaintdata);
-  } catch (error) {
-    res.status(400).send("complaint data not found");
+  }   catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "buses route not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

@@ -8,7 +8,8 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer");
 const path = require("path");
-
+const bcrypt =require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const storagePath = path.join(__dirname, "../../../src/storage/studentimages");
 
@@ -37,22 +38,41 @@ var upload = multer({
 
 StudentsRoute.post("/add-students", userAuth, upload.single("ProfilePicture"), async (req, res) => {
   try {
-      console.log("Uploaded File:", req.file); // Debugging
+    console.log("Uploaded File:", req.file);
+    const hashPassword = await bcrypt.hash(req.body.password, 10);
+        req.body.password = hashPassword;
 
-      if (!req.file) {
-          return res.status(400).json({ error: "No file uploaded" });
-      }
+    if (!req.file) {
+      return res.status(400).json({
+        errors: ["No file uploaded"],
+        status: "unprocessable_entity"
+      });
+    }
 
-      req.body.ProfilePicture = req.file.filename;
+    req.body.ProfilePicture = req.file.filename;
 
-      const AddStudents = new StudentsModel(req.body);
-      await AddStudents.save();
-      res.send("Added Student Successfully");
-  } catch (error) {
-      console.error("Error adding student:", error);
-      res.status(400).send("Error adding the student");
+    const AddStudents = new StudentsModel(req.body);
+    await AddStudents.save();
+
+    res.send("Added Student Successfully");
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in adding student";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
+
 
 StudentsRoute.post("/login", async (req, res) => {
   try {
@@ -81,8 +101,20 @@ StudentsRoute.post("/login", async (req, res) => {
     res.cookie("token", token, { httpOnly: true }); // Secure cookie
     res.json({ message: "Login successful", token });
   } catch (error) {
-    console.error("Login Error:", error);
-    res.status(500).json({ message: "Internal Server Error", error });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "login failed";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -131,9 +163,21 @@ StudentsRoute.patch("/update-student", userAuth, upload.single("ProfilePicture")
       student,
     });
 
-  } catch (error) {
-    console.error("Error updating student:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in update student";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -147,7 +191,20 @@ StudentsRoute.delete("/delete-student", userAuth, async (req, res) => {
     await StudentsModel.findByIdAndDelete(studentId);
     res.send("student deleted successfully");
   } catch (error) {
-    res.status(400).send("Error deleting  the bus student");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in delete student";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -156,7 +213,20 @@ StudentsRoute.get("/search-student", userAuth, async (req, res) => {
     const GetStudentdata = await StudentsModel.findOne(req.body);
     res.send(GetStudentdata);
   } catch (error) {
-    res.status(400).send("student not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "student data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -164,8 +234,21 @@ StudentsRoute.get("/student-data", userAuth, async (req, res) => {
   try {
     const GetStudentdata = await StudentsModel.findOne(req.body);
     res.send(GetStudentdata);
-  } catch (error) {
-    res.status(400).send("bus staff not found");
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "student data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -174,7 +257,20 @@ StudentsRoute.get("/students-data", userAuth, async (req, res) => {
     const GetStudentdata = await StudentsModel.find();
     res.send(GetStudentdata);
   } catch (error) {
-    res.status(400).send("student not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "students data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -193,7 +289,20 @@ StudentsRoute.post("/forgot-password", async (req, res) => {
       await StudentsModel.updateOne({ email }, { $set: { password: hashedPassword } });
       res.json({ message: "Password updated successfully" });
   } catch (error) {
-      res.status(500).json({ message: "Error updating password", error });
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in forgot password";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -235,9 +344,21 @@ StudentsRoute.get("/bulk-upload", userAuth, upload.single("file"), async (req, r
       );
 
       return res.status(200).json(successResponse("Students uploaded successfully"));
-  } catch (error) {
-      console.error("Error in bulk upload:", error);
-      return res.status(500).json(errorResponse("Error processing student upload"));
+  }catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "An unexpected error occurred";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 module.exports = StudentsRoute;

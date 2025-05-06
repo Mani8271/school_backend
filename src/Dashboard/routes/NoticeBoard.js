@@ -43,8 +43,21 @@ NoticeBoardRoute.post("/add-noticeboard",userAuth,upload.single("noticeImage"),a
       const Addnoticeboard = new NoticeBoardModel(req.body);
       await Addnoticeboard.save();
       res.send("Added noticeboard Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the noticeboard");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in adding notice";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
@@ -92,9 +105,21 @@ NoticeBoardRoute.patch("/update-noticeboard-data", upload.single("noticeImage"),
       noticeboard,
     });
 
-  } catch (error) {
-    console.error("Error updating noticeboard:", error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in update notice";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -107,8 +132,21 @@ NoticeBoardRoute.delete("/delete-noticeboard-data", userAuth, async (req, res) =
     }
     await NoticeBoardModel.findByIdAndDelete(noticeboardId);
     res.send("noticeboard data deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the noticeboard data");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in deleting notice";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -116,8 +154,21 @@ NoticeBoardRoute.get("/search-noticeboard-data", userAuth, async (req, res) => {
   try {
     const Getnoticeboarddata = await NoticeBoardModel.findOne(req.body);
     res.send(Getnoticeboarddata);
-  } catch (error) {
-    res.status(400).send("noticeboard data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "notice not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -125,8 +176,21 @@ NoticeBoardRoute.get("/noticeboard", userAuth, async (req, res) => {
   try {
     const Getnoticeboarddata = await NoticeBoardModel.findOne(req.body);
     res.send(Getnoticeboarddata);
-  } catch (error) {
-    res.status(400).send("noticeboard data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "notice data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -134,8 +198,21 @@ NoticeBoardRoute.get("/noticeboards", userAuth, async (req, res) => {
   try {
     const Getnoticeboarddata = await NoticeBoardModel.find();
     res.send(Getnoticeboarddata);
-  } catch (error) {
-    res.status(400).send("noticeboard data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "notices data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

@@ -10,8 +10,21 @@ HolidaysRoute.post("/add-holiday", userAuth, async (req, res) => {
     const Addholiday = new HolidaysModel(req.body);
     await Addholiday.save();
     res.send("Added holiday Successfully");
-  } catch (error) {
-    res.status(400).send("Error adding the holiday");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in adding holiday";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -36,9 +49,21 @@ HolidaysRoute.patch("/update-holiday-data", userAuth, async (req, res) => {
       message: "holiday data updated successfully",
       holiday: updatedholiday,
     });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Something went wrong" });
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in updating holiday data";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -52,7 +77,20 @@ HolidaysRoute.delete("/delete-holiday-data", userAuth, async (req, res) => {
     await HolidaysModel.findByIdAndDelete(holidayId);
     res.send("holiday data deleted successfully");
   } catch (error) {
-    res.status(400).send("Error deleting  the holiday data");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in deleting holiday data";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -60,8 +98,21 @@ HolidaysRoute.get("/search-holiday-data", userAuth, async (req, res) => {
   try {
     const Getholidaydata = await HolidaysModel.findOne(req.body);
     res.send(Getholidaydata);
-  } catch (error) {
-    res.status(400).send("holiday data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "holiday data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -69,8 +120,21 @@ HolidaysRoute.get("/holiday-data", userAuth, async (req, res) => {
   try {
     const Getholidaydata = await HolidaysModel.findOne(req.body);
     res.send(Getholidaydata);
-  } catch (error) {
-    res.status(400).send("holiday data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "holiday data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -79,7 +143,20 @@ HolidaysRoute.get("/holidays-data", userAuth, async (req, res) => {
     const Getholidaydata = await HolidaysModel.find();
     res.send(Getholidaydata);
   } catch (error) {
-    res.status(400).send("holiday data not found");
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "holidays data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

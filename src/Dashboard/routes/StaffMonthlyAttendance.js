@@ -12,36 +12,65 @@ StaffMonthlyAttendanceRoute.post( "/add-staff-monthly-attendance", userAuth,asyn
       const AddAttendance = new StaffAttendanceModel(req.body);
       await AddAttendance.save();
       res.send("Added Attendance Successfully");
-    } catch (error) {
-      res.status(400).send("Error adding the Attendance");
+    }  catch (error) {
+      console.error("❌ Error:", { message: error.message });
+    
+      let msg = "error in add staff monthly attendance";
+    
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors).map(err => err.message).join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+    
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }
 );
 
-StaffMonthlyAttendanceRoute.patch("/update-Attendance",userAuth,async (req, res) => {
-    try {
-      const AttendanceId = req.body._id;
-      // Ensure `_id` is a valid MongoDB ObjectId
-      if (!mongoose.Types.ObjectId.isValid(AttendanceId)) {
-        return res.status(400).json({ error: "Invalid ID format" });
-      }
-      // Find the Attendance first
-      const Attendance = await StaffAttendanceModel.findById(AttendanceId);
-      if (!Attendance) {
-        return res.status(404).json({ error: "Attendance not found" });
-      }
-      // ✅ Save the updated Attendance
-      await Attendance.save();
-      return res.json({
-        message: "Attendance data updated successfully",
-        Attendance,
-      });
-    } catch (error) {
-      console.error(error);
-      return res.status(500).json({ error: "Something went wrong" });
+StaffMonthlyAttendanceRoute.patch("/update-Attendance", userAuth, async (req, res) => {
+  try {
+    const AttendanceId = req.body._id;
+
+    if (!mongoose.Types.ObjectId.isValid(AttendanceId)) {
+      return res.status(400).json({ error: "Invalid ID format" });
     }
+
+    const Attendance = await StaffAttendanceModel.findById(AttendanceId);
+    if (!Attendance) {
+      return res.status(404).json({ error: "Attendance not found" });
+    }
+
+    // ✅ Update fields from req.body
+    Object.assign(Attendance, req.body);
+
+    await Attendance.save();
+
+    return res.json({
+      message: "Attendance data updated successfully",
+      Attendance,
+    });
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
+
+    let msg = "error in update staff monthly attendance";
+
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
-);
+});
+
 
 StaffMonthlyAttendanceRoute.delete("/delete-Attendance", userAuth, async (req, res) => {
   try {
@@ -52,8 +81,21 @@ StaffMonthlyAttendanceRoute.delete("/delete-Attendance", userAuth, async (req, r
     }
     await StaffAttendanceModel.findByIdAndDelete(AttendanceId);
     res.send("Attendance data deleted successfully");
-  } catch (error) {
-    res.status(400).send("Error deleting  the Attendance data");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "error in delete staff monthly attendance";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -61,8 +103,21 @@ StaffMonthlyAttendanceRoute.get("/search-Attendance", userAuth, async (req, res)
   try {
     const GetAttendancedata = await StaffAttendanceModel.findOne(req.body);
     res.send(GetAttendancedata);
-  } catch (error) {
-    res.status(400).send("Attendance data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = " staff monthly attendance data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -70,8 +125,21 @@ StaffMonthlyAttendanceRoute.get("/Attendance-data", userAuth, async (req, res) =
   try {
     const GetAttendancedata = await StaffAttendanceModel.findOne(req.body);
     res.send(GetAttendancedata);
-  } catch (error) {
-    res.status(400).send("Attendance data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "staff monthly attendance data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
@@ -79,8 +147,21 @@ StaffMonthlyAttendanceRoute.get("/all-Attendance-data", userAuth, async (req, re
   try {
     const GetAttendancedata = await StaffAttendanceModel.find();
     res.send(GetAttendancedata);
-  } catch (error) {
-    res.status(400).send("Attendance data not found");
+  }  catch (error) {
+    console.error("❌ Error:", { message: error.message });
+  
+    let msg = "staff monthly attendance data not found";
+  
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+  
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 

@@ -1,7 +1,7 @@
 const express = require("express");
 const AttendanceRoute = express.Router();
 const {isValidObjectId,} = require("../../utils/validation");
-const AttendanceModel = require("../../models/Studentattendances");
+const AttendanceModel = require("../../models/StudentsAttendance");
 const { Error } = require("console");
 const { AppuserAuth } = require("../../middlewares/auth");
 const multer = require("multer");
