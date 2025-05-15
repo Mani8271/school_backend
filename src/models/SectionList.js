@@ -5,7 +5,7 @@ const SectionSchema = new mongoose.Schema({
     className: {  // Renamed from "class"
         type: String, 
         
-        unique:true
+   
     },
     sectionName:
     {

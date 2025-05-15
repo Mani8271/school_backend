@@ -152,7 +152,7 @@ NoticeBoardRoute.delete("/delete-noticeboard-data", userAuth, async (req, res) =
 
 NoticeBoardRoute.get("/search-noticeboard-data", userAuth, async (req, res) => {
   try {
-    const Getnoticeboarddata = await NoticeBoardModel.findOne(req.body);
+    const Getnoticeboarddata = await NoticeBoardModel.findOne(req.query);
     res.send(Getnoticeboarddata);
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });
@@ -198,6 +198,7 @@ NoticeBoardRoute.get("/noticeboards", userAuth, async (req, res) => {
   try {
     const Getnoticeboarddata = await NoticeBoardModel.find();
     res.send(Getnoticeboarddata);
+    console.log(Getnoticeboarddata);
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });
   

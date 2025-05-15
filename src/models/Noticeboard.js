@@ -20,7 +20,11 @@ const noticeBoardSchema = new mongoose.Schema(
         },
         noticeImage: {  // Fixed capitalization
             type: String
-        }
+        },
+        className: {  
+            type: String,
+            required: true,
+          },
     },
     {
       timestamps: true

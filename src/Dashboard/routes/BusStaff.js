@@ -86,7 +86,7 @@ BusStaffRoute.patch("/update-bus-staff", userAuth, upload.fields([{ name: "profi
     }
 
     // ✅ Handle Profile Photo Update
-    if (req.files["profilePhoto"]) {
+    if (req.files?.profilePhoto) {
       const oldProfilePath = path.join(storagePath, busstaff.profilePhoto);
       if (fs.existsSync(oldProfilePath)) {
         fs.unlinkSync(oldProfilePath); // Delete old image
@@ -96,7 +96,7 @@ BusStaffRoute.patch("/update-bus-staff", userAuth, upload.fields([{ name: "profi
     }
 
     // ✅ Handle License Photo Update
-    if (req.files["licensePhoto"]) {
+    if (req.files?.licensePhoto) {
       const oldLicensePath = path.join(storagePath, busstaff.licensePhoto);
       if (fs.existsSync(oldLicensePath)) {
         fs.unlinkSync(oldLicensePath); // Delete old image

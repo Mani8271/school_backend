@@ -288,42 +288,88 @@ systemUserRoute.post("/forgot-password", async (req, res) => {
     }
 });
 
+// systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
+//     try {
+//         const user = req.user; // User from authentication middleware
+//         const { password, newPassword } = req.body;
+
+//         // Compare old password with stored hashed password
+//         const isMatch = await bcrypt.compare(password, user.password);
+//         if (!isMatch) {
+//             return res.status(400).json({ message: "Invalid password" });
+//         }
+
+//         // Hash the new password
+//         const salt = await bcrypt.genSalt(10);
+//         const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+//         // Update the password in the database
+//         await systemUsersModel.updateOne({ email: user.email }, { $set: { password: hashedPassword } });
+
+//         res.json({ message: "Password updated successfully" });
+//     } catch (error) {
+//       console.error("❌ Error:", { message: error.message });
+    
+//       let msg = "failed to reset password";
+    
+//       if (error.code === 11000) {
+//         const field = Object.keys(error.keyValue)[0];
+//         msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+//       } else if (error.name === "ValidationError") {
+//         msg = Object.values(error.errors).map(err => err.message).join(", ");
+//       } else if (error.message) {
+//         msg = error.message;
+//       }
+    
+//       res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+//     }
+// });
+
+
+
 systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
-    try {
-        const user = req.user; // User from authentication middleware
-        const { password, newPassword } = req.body;
+  try {
+    const user = req.user;
+    const { password: oldPassword, newPassword } = req.body;
 
-        // Compare old password with stored hashed password
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            return res.status(400).json({ message: "Invalid password" });
-        }
-
-        // Hash the new password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
-
-        // Update the password in the database
-        await systemUsersModel.updateOne({ email: user.email }, { $set: { password: hashedPassword } });
-
-        res.json({ message: "Password updated successfully" });
-    } catch (error) {
-      console.error("❌ Error:", { message: error.message });
-    
-      let msg = "failed to reset password";
-    
-      if (error.code === 11000) {
-        const field = Object.keys(error.keyValue)[0];
-        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-      } else if (error.name === "ValidationError") {
-        msg = Object.values(error.errors).map(err => err.message).join(", ");
-      } else if (error.message) {
-        msg = error.message;
-      }
-    
-      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({ message: "Old and new passwords are required" });
     }
+
+    // Verify old password
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Incorrect old password" });
+    }
+
+    // Hash and update new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await systemUsersModel.updateOne(
+      { _id: user._id },
+      { $set: { password: hashedPassword } }
+    );
+
+    res.status(200).json({ message: "Password updated successfully" });
+
+  } catch (error) {
+    console.error("❌ Error:", error);
+
+    let msg = "Failed to reset password";
+
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+  }
 });
+
 
 systemUserRoute.get("/get-logged-in-user-details", userAuth, async (req, res) => {
   try {
