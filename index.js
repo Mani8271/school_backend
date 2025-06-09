@@ -8,7 +8,7 @@ app.use(cookieParser());
 const cors = require("cors");  // Import cors
 
 app.use(cors({
-  origin: ["http://localhost:3000", "http://localhost:3001"],
+  origin: ["http://localhost:3000", "http://localhost:3001","https://sensational-ganache-42e12d.netlify.app" ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
