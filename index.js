@@ -1,5 +1,6 @@
 const express = require("express");
 const app = express();
+const path = require("path");
 const ConnectDB = require("./src/config/db");
 const cookieParser = require("cookie-parser");
 app.use(express.json());
@@ -69,7 +70,9 @@ const studentHomework = require("./src/App/routes/StudentHomework");
 const Studentattendances = require("./src/App/routes/StudentAttendance")
 const Teachercomplaints =require("./src/App/routes/TeacherComplaints")
 
-
+app.use('/userdp', express.static(path.join(__dirname, 'src/storage/userdp')));
+app.use('/blogimages', express.static(path.join(__dirname, 'src/storage/blogimages')));
+app.use("/noticeimages", express.static(path.join(__dirname, "src/storage/noticefiles")));
 app.use("/systemUsers",systemUser)
 app.use("/holidays",Holidays)
 app.use("/blogs",Blogs)

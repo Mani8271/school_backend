@@ -37,7 +37,7 @@ const systemUserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ["Super Admin", "Admin"], // Only allow Super Admin and Admin
+    enum: ["Super Admin", "Admin","Bus Admin"], // Only allow Super Admin and Admin
   },
   status: {
     type: String,

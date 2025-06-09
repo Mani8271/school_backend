@@ -1,66 +1,101 @@
 const express = require("express");
+const mongoose = require("mongoose");
 const CommentsRoute = express.Router();
-const {isValidObjectId,validateEditBlogData} = require("../../utils/validation");
+const { isValidObjectId, validateEditBlogData } = require("../../utils/validation");
 const CommentsModel = require("../../models/Comments");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
 
-CommentsRoute.post("/add-comment",userAuth,async(req,res)=>
-{
-    try {
-    const Comments = await CommentsModel(req.body);
-    res.send("comment added successfully");
-    }  catch (error) {
-      console.error("❌ Error:", { message: error.message });
-    
-      let msg = "error in adding comments";
-    
-      if (error.code === 11000) {
-        const field = Object.keys(error.keyValue)[0];
-        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-      } else if (error.name === "ValidationError") {
-        msg = Object.values(error.errors).map(err => err.message).join(", ");
-      } else if (error.message) {
-        msg = error.message;
-      }
-    
-      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
-    }
-})
+// CommentsRoute.post("/add-comment",userAuth,async(req,res)=>
+// {
+//     try {
+//     const Comments = await CommentsModel(req.body);
+//     res.send("comment added successfully");
+//     }  catch (error) {
+//       console.error("❌ Error:", { message: error.message });
 
-CommentsRoute.patch("/update-comment",userAuth,async(req,res)=>
-{
-     try {
-        
-        const commentId = req.body._id;
-        if (!isValidObjectId(commentId)) {
-          return res.status(400).json({ error: "Invalid ID format" });
-        }
-        let comment = await CommentsModel.findById(commentId);
-        if (!comment) {
-          return res.status(404).json({ error: "comment not found" });
-        }
-        await comment.save();
-        return res.json({
-          message: "comment data updated successfully",
-          comment,
-        });
-      }  catch (error) {
-        console.error("❌ Error:", { message: error.message });
-      
-        let msg = "An unexpected error occurred";
-      
-        if (error.code === 11000) {
-          const field = Object.keys(error.keyValue)[0];
-          msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-        } else if (error.name === "ValidationError") {
-          msg = Object.values(error.errors).map(err => err.message).join(", ");
-        } else if (error.message) {
-          msg = error.message;
-        }
-      
-        res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
-      }
+//       let msg = "error in adding comments";
+
+//       if (error.code === 11000) {
+//         const field = Object.keys(error.keyValue)[0];
+//         msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+//       } else if (error.name === "ValidationError") {
+//         msg = Object.values(error.errors).map(err => err.message).join(", ");
+//       } else if (error.message) {
+//         msg = error.message;
+//       }
+
+//       res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+//     }
+// })
+CommentsRoute.get("/:blogId", userAuth, async (req, res) => {
+  try {
+    const { blogId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(blogId)) {
+           console.warn("⚠️ Invalid blogId received:", blogId);
+      return res.status(400).json({ error: "Invalid blogId" });
+    }
+
+    const comments = await CommentsModel.find({ blogId }).sort({ createdAt: -1 });
+      console.log(`✅ Found ${comments.length} comment(s) for blogId: ${blogId}`);
+    res.json(comments);
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
+    res.status(400).json({ error: error.message });
+  }
+});
+
+CommentsRoute.post("/add-comment", userAuth, async (req, res) => {
+  try {
+    const { name, email, comment, blogId } = req.body;
+
+    if (!mongoose.Types.ObjectId.isValid(blogId)) {
+      return res.status(400).json({ error: "Invalid blogId" });
+    }
+
+    const newComment = new CommentsModel({ name, email, comment, blogId });
+    await newComment.save();
+
+    res.send("Comment added successfully");
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
+    res.status(400).json({ error: error.message });
+  }
+});
+
+CommentsRoute.patch("/update-comment", userAuth, async (req, res) => {
+  try {
+
+    const commentId = req.body._id;
+    if (!isValidObjectId(commentId)) {
+      return res.status(400).json({ error: "Invalid ID format" });
+    }
+    let comment = await CommentsModel.findById(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: "comment not found" });
+    }
+    await comment.save();
+    return res.json({
+      message: "comment data updated successfully",
+      comment,
+    });
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
+
+    let msg = "An unexpected error occurred";
+
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+  }
 })
 
 CommentsRoute.delete("/delete-comment", userAuth, async (req, res) => {
@@ -72,11 +107,11 @@ CommentsRoute.delete("/delete-comment", userAuth, async (req, res) => {
     }
     await CommentsModel.findByIdAndDelete(commentId);
     res.send("comment deleted successfully");
-  }  catch (error) {
+  } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "An unexpected error occurred";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -85,7 +120,7 @@ CommentsRoute.delete("/delete-comment", userAuth, async (req, res) => {
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -94,11 +129,11 @@ CommentsRoute.get("/search-comment", userAuth, async (req, res) => {
   try {
     const GetComment = await CommentsModel.findOne(req.body);
     res.send(GetComment);
-  }  catch (error) {
+  } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "An unexpected error occurred";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -107,7 +142,7 @@ CommentsRoute.get("/search-comment", userAuth, async (req, res) => {
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -116,11 +151,11 @@ CommentsRoute.get("/comment-data", userAuth, async (req, res) => {
   try {
     const GetCommentdata = await CommentsModel.findOne(req.body);
     res.send(GetCommentdata);
-  }  catch (error) {
+  } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "An unexpected error occurred";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -129,7 +164,7 @@ CommentsRoute.get("/comment-data", userAuth, async (req, res) => {
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -138,11 +173,11 @@ CommentsRoute.get("/comments-data", userAuth, async (req, res) => {
   try {
     const GetCommentdata = await CommentsModel.find();
     res.send(GetCommentdata);
-  }  catch (error) {
+  } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "An unexpected error occurred";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -151,31 +186,31 @@ CommentsRoute.get("/comments-data", userAuth, async (req, res) => {
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
 CommentsRoute.get("/count-comments", userAuth, async (req, res) => {
-    try {
-        const commentCount = await CommentsModel.countDocuments();
-        res.json({ count: commentCount });
-    }  catch (error) {
-      console.error("❌ Error:", { message: error.message });
-    
-      let msg = "An unexpected error occurred";
-    
-      if (error.code === 11000) {
-        const field = Object.keys(error.keyValue)[0];
-        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-      } else if (error.name === "ValidationError") {
-        msg = Object.values(error.errors).map(err => err.message).join(", ");
-      } else if (error.message) {
-        msg = error.message;
-      }
-    
-      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+  try {
+    const commentCount = await CommentsModel.countDocuments();
+    res.json({ count: commentCount });
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
+
+    let msg = "An unexpected error occurred";
+
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors).map(err => err.message).join(", ");
+    } else if (error.message) {
+      msg = error.message;
     }
+
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+  }
 });
 
-module.exports= CommentsRoute;
+module.exports = CommentsRoute;

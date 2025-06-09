@@ -11,7 +11,7 @@ const StudentsSchema = new mongoose.Schema({
         
         enum: ["male", "female", "Others"],
     },
-    role:
+    rollno:
     {
         type: String,
     },
@@ -30,7 +30,7 @@ const StudentsSchema = new mongoose.Schema({
     section: {
         type: String,
         
-        enum: ["a", "b", "c", "d", "e"],
+ 
     },
     address: {
         type: String,

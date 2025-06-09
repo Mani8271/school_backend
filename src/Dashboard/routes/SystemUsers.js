@@ -93,7 +93,7 @@ systemUserRoute.post("/login", async (req, res) => {
     }
 
     // Role check
-    if (user.role !== "Admin" && user.role !== "Super Admin") {
+    if (user.role !== "Admin" && user.role !== "Super Admin" && user.role !== "Bus Admin") {
       return res.status(403).json({ message: "Invalid user role" });
     }
 
@@ -185,7 +185,7 @@ systemUserRoute.patch("/user-update", userAuth, upload.single("profilePicture"),
 
     // ✅ Handle Profile Picture Update
     if (req.file) {
-      const oldImagePath = path.join(__dirname, "../../../src/storage/userimages", loggedinUser.profilePicture);
+      const oldImagePath = path.join(__dirname, "../../../src/storage/userdp", loggedinUser.profilePicture);
 
       // Delete old image if it exists
       if (loggedinUser.profilePicture && fs.existsSync(oldImagePath)) {

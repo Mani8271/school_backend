@@ -9,6 +9,7 @@ const path = require("path")
 const fs = require("fs")
 const storagePath = path.join(__dirname, "../../../src/storage/noticefiles");
 
+
 if (!fs.existsSync(storagePath)) {
   fs.mkdirSync(storagePath, { recursive: true });
   console.log("Directory created:", storagePath);
@@ -149,16 +150,29 @@ NoticeBoardRoute.delete("/delete-noticeboard-data", userAuth, async (req, res) =
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
+// routes/NoticeBoardRoute.js
 
 NoticeBoardRoute.get("/search-noticeboard-data", userAuth, async (req, res) => {
   try {
-    const Getnoticeboarddata = await NoticeBoardModel.findOne(req.query);
-    res.send(Getnoticeboarddata);
-  }  catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
-    let msg = "notice not found";
-  
+    const searchQuery = req.query.searchQuery || "";
+    console.log("Search Query:", searchQuery);
+
+    // Build case-insensitive search condition
+    const searchCondition = {
+      noticeTitle: { $regex: searchQuery, $options: "i" },
+    };
+
+    // If searchQuery is empty, return all documents
+    const query = searchQuery ? searchCondition : {};
+
+    const notices = await NoticeBoardModel.find(query);
+
+    res.status(200).json(notices);
+  } catch (error) {
+    console.error("❌ Search Error:", error);
+
+    let msg = "Something went wrong while searching notices";
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -167,10 +181,14 @@ NoticeBoardRoute.get("/search-noticeboard-data", userAuth, async (req, res) => {
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
+
+
+
+
 
 NoticeBoardRoute.get("/noticeboard", userAuth, async (req, res) => {
   try {
