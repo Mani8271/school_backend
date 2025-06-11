@@ -4,12 +4,24 @@ const {isValidObjectId} = require("../../utils/validation");
 const ClassesModel = require("../../models/Classes");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
-
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 ClassRoute.post("/add-class",userAuth,async (req, res) => {
     try {
       const AddClass = new ClassesModel(req.body);
       await AddClass.save();
+      const now = moment();
+                const newNotification = new NotificationsModel({
+                  title: "New Class Added",
+                  description: `Class ${
+                    req.body.className || ""
+                  } has been added successfully.`,
+                  date: now.format("YYYY-MM-DD"),
+                  time: now.format("h:mm A"),
+                });
+                await newNotification.save();
+                console.log("newNotification", newNotification);
       res.send("Added class Successfully");
     }catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -54,6 +66,16 @@ ClassRoute.patch("/update-class", userAuth, async (req, res) => {
     // Save updated bus
     await Class.save();
 
+    const now = new Date();
+              const newNotification = new NotificationsModel({
+                title: "Class Updated",
+                description: `Class ${Class.className || ClassId} has been updated.`,
+                date: now.format("YYYY-MM-DD"),
+                time: now.format("h:mm A"),
+              });
+        
+              await newNotification.save();
+
     return res.json({
       message: "class updated successfully",
       Class,
@@ -85,6 +107,17 @@ ClassRoute.delete("/delete-class", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await ClassesModel.findByIdAndDelete(ClassId);
+
+    const now = moment();
+                const notification = new NotificationsModel({
+                  title: "Class Deleted",
+                  description: `Class with ID ${ClassId} has been deleted from the system.`,
+                  date: now.format("YYYY-MM-DD"),
+                  time: now.format("h:mm A"),
+                });
+            
+                // Save notification
+                await notification.save();
     res.send("class deleted successfully");
   }catch (error) {
     console.error("❌ Error:", { message: error.message });
