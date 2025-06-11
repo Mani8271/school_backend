@@ -1,44 +1,29 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const CommentsRoute = express.Router();
-const { isValidObjectId, validateEditBlogData } = require("../../utils/validation");
+const {
+  isValidObjectId,
+  validateEditBlogData,
+} = require("../../utils/validation");
 const CommentsModel = require("../../models/Comments");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
-// CommentsRoute.post("/add-comment",userAuth,async(req,res)=>
-// {
-//     try {
-//     const Comments = await CommentsModel(req.body);
-//     res.send("comment added successfully");
-//     }  catch (error) {
-//       console.error("❌ Error:", { message: error.message });
-
-//       let msg = "error in adding comments";
-
-//       if (error.code === 11000) {
-//         const field = Object.keys(error.keyValue)[0];
-//         msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-//       } else if (error.name === "ValidationError") {
-//         msg = Object.values(error.errors).map(err => err.message).join(", ");
-//       } else if (error.message) {
-//         msg = error.message;
-//       }
-
-//       res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
-//     }
-// })
 CommentsRoute.get("/:blogId", userAuth, async (req, res) => {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-           console.warn("⚠️ Invalid blogId received:", blogId);
+      console.warn("⚠️ Invalid blogId received:", blogId);
       return res.status(400).json({ error: "Invalid blogId" });
     }
 
-    const comments = await CommentsModel.find({ blogId }).sort({ createdAt: -1 });
-      console.log(`✅ Found ${comments.length} comment(s) for blogId: ${blogId}`);
+    const comments = await CommentsModel.find({ blogId }).sort({
+      createdAt: -1,
+    });
+    console.log(`✅ Found ${comments.length} comment(s) for blogId: ${blogId}`);
     res.json(comments);
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
@@ -57,6 +42,16 @@ CommentsRoute.post("/add-comment", userAuth, async (req, res) => {
     const newComment = new CommentsModel({ name, email, comment, blogId });
     await newComment.save();
 
+    const newNotification = new NotificationsModel({
+      title: "New Comment Added",
+      description: `New Comment${
+        req.body.name || req.body.blogId || ""
+      } has been added successfully.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+    await newNotification.save();
+
     res.send("Comment added successfully");
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
@@ -66,7 +61,6 @@ CommentsRoute.post("/add-comment", userAuth, async (req, res) => {
 
 CommentsRoute.patch("/update-comment", userAuth, async (req, res) => {
   try {
-
     const commentId = req.body._id;
     if (!isValidObjectId(commentId)) {
       return res.status(400).json({ error: "Invalid ID format" });
@@ -76,6 +70,15 @@ CommentsRoute.patch("/update-comment", userAuth, async (req, res) => {
       return res.status(404).json({ error: "comment not found" });
     }
     await comment.save();
+
+    const newNotification = new NotificationsModel({
+      title: "Comment Updated",
+      description: `Comment${comment.name || commentId} has been updated.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+
+    await newNotification.save();
     return res.json({
       message: "comment data updated successfully",
       comment,
@@ -89,14 +92,16 @@ CommentsRoute.patch("/update-comment", userAuth, async (req, res) => {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
 
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
-})
+});
 
 CommentsRoute.delete("/delete-comment", userAuth, async (req, res) => {
   try {
@@ -106,6 +111,17 @@ CommentsRoute.delete("/delete-comment", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await CommentsModel.findByIdAndDelete(commentId);
+
+    const now = moment();
+    const notification = new NotificationsModel({
+      title: " Comment Deleted",
+      description: ` Comment with ID ${commentId} has been deleted from the system.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+    // Save notification
+    await notification.save();
+
     res.send("comment deleted successfully");
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
@@ -116,7 +132,9 @@ CommentsRoute.delete("/delete-comment", userAuth, async (req, res) => {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
@@ -138,7 +156,9 @@ CommentsRoute.get("/search-comment", userAuth, async (req, res) => {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
@@ -160,7 +180,9 @@ CommentsRoute.get("/comment-data", userAuth, async (req, res) => {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
@@ -182,7 +204,9 @@ CommentsRoute.get("/comments-data", userAuth, async (req, res) => {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
@@ -204,7 +228,9 @@ CommentsRoute.get("/count-comments", userAuth, async (req, res) => {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }

@@ -10,7 +10,8 @@ const multer = require("multer");
 const path = require("path");
 const bcrypt =require("bcrypt");
 const jwt = require("jsonwebtoken");
-
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
 
 if (!fs.existsSync(storagePath)) {
@@ -48,6 +49,17 @@ NonTeachingStaffRoute.post("/add-staff",userAuth,upload.single("ProfilePicture")
       }
       const AddStaff = new NonTeachingStaffModel(req.body);
       await AddStaff.save();
+const now = moment();
+      const newNotification = new NotificationsModel({
+        title: "New Staff Added",
+        description: `Staff ${
+          req.body.name || ""
+        } has been added successfully.`,
+        date: now.format("YYYY-MM-DD"),
+        time: now.format("h:mm A"),
+      });
+      await newNotification.save();
+
       res.send("Added teacher Successfully");
     } catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -151,6 +163,16 @@ NonTeachingStaffRoute.patch("/update-staff", userAuth, upload.single("ProfilePic
     // Save updated staff data
     await staff.save();
 
+    const now = new Date();
+          const newNotification = new NotificationsModel({
+            title: "Staff Updated",
+            description: `Staff ${staff.name || staffId} has been updated.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+    
+          await newNotification.save();
+
     return res.json({
       message: "Staff updated successfully",
       staff,
@@ -182,6 +204,17 @@ NonTeachingStaffRoute.delete("/delete-staff", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await NonTeachingStaffModel.findByIdAndDelete(staffId);
+
+    const now = moment();
+        const notification = new NotificationsModel({
+          title: "Staff Deleted",
+          description: `Staff with ID ${staffId} has been deleted from the system.`,
+          date: now.format("YYYY-MM-DD"),
+          time: now.format("h:mm A"),
+        });
+    
+        // Save notification
+        await notification.save();
     res.send("staff deleted successfully");
   } catch (error) {
     console.error("❌ Error:", { message: error.message });

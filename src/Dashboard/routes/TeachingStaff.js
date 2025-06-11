@@ -1,6 +1,9 @@
 const express = require("express");
 const TeachersRoute = express.Router();
-const {isValidObjectId,validateEditTeachersData,} = require("../../utils/validation");
+const {
+  isValidObjectId,
+  validateEditTeachersData,
+} = require("../../utils/validation");
 const TeachersModel = require("../../models/TeachingStaff");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
@@ -8,9 +11,10 @@ const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer");
 const path = require("path");
-const bcrypt =require("bcrypt");
+const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
 
@@ -37,30 +41,56 @@ var upload = multer({
   },
 });
 
-TeachersRoute.post("/add-teacher", userAuth,upload.single("ProfilePicture"), async (req, res) => {
-  try {
-    const hashPassword = await bcrypt.hash(req.body.password, 10);
-        req.body.password = hashPassword;
-    const AddClassTimeTable = new TeachersModel(req.body);
-    await AddClassTimeTable.save();
-    res.send("Added teacher Successfully");
-  } catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
-    let msg = "error in adding teacher";
-  
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0];
-      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-    } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
-    } else if (error.message) {
-      msg = error.message;
+TeachersRoute.post(
+  "/add-teacher",
+  userAuth,
+  upload.single("ProfilePicture"),
+  async (req, res) => {
+    try {
+      // Hash password
+      const hashPassword = await bcrypt.hash(req.body.password, 10);
+      req.body.password = hashPassword;
+
+      // Save teacher
+      const newTeacher = new TeachersModel(req.body);
+      await newTeacher.save();
+
+      // Create notification for admin
+      const now = moment();
+      const newNotification = new NotificationsModel({
+        title: "New Teacher Added",
+        description: `Teacher ${
+          req.body.teacherName || ""
+        } has been added successfully.`,
+        date: now.format("YYYY-MM-DD"),
+        time: now.format("h:mm A"),
+      });
+      await newNotification.save();
+
+      // Send success response
+      res.send("Added teacher Successfully and notification sent to admin");
+    } catch (error) {
+      console.error("❌ Error:", { message: error.message });
+
+      let msg = "error in adding teacher";
+
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
-  
-    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
-});
+);
 
 TeachersRoute.post("/login", async (req, res) => {
   try {
@@ -90,111 +120,149 @@ TeachersRoute.post("/login", async (req, res) => {
     res.json({ message: "Login successful", token });
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "login failed";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
+TeachersRoute.patch(
+  "/update-teacher",
+  userAuth,
+  upload.single("ProfilePicture"),
+  async (req, res) => {
+    try {
+      const teacherId = req.body._id;
 
-
-TeachersRoute.patch("/update-teacher", userAuth, upload.single("ProfilePicture"), async (req, res) => {
-  try {
-    const teacherId = req.body._id;
-
-    // Ensure `_id` is a valid MongoDB ObjectId
-    if (!isValidObjectId(teacherId)) {
-      return res.status(400).json({ error: "Invalid ID format" });
-    }
-
-    // Find the teacher by ID
-    let teacher = await TeachersModel.findById(teacherId);
-    if (!teacher) {
-      return res.status(404).json({ error: "Teacher not found" });
-    }
-
-    // ✅ Handle Profile Picture Update
-    if (req.file) {
-      // Get old image path
-      const oldImagePath = path.join(__dirname, "../../../src/storage/teacherimages", teacher.ProfilePicture);
-
-      // Delete old image if it exists
-      if (teacher.ProfilePicture && fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
-        console.log("✅ Old image deleted:", teacher.ProfilePicture);
+      if (!isValidObjectId(teacherId)) {
+        return res.status(400).json({ error: "Invalid ID format" });
       }
 
-      // Assign new image filename
-      teacher.ProfilePicture = req.file.filename;
+      let teacher = await TeachersModel.findById(teacherId);
+      if (!teacher) {
+        return res.status(404).json({ error: "Teacher not found" });
+      }
+
+      // Handle profile picture update
+      if (req.file) {
+        const oldImagePath = path.join(
+          __dirname,
+          "../../../src/storage/teacherimages",
+          teacher.ProfilePicture
+        );
+        if (teacher.ProfilePicture && fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+          console.log("✅ Old image deleted:", teacher.ProfilePicture);
+        }
+        teacher.ProfilePicture = req.file.filename;
+      }
+
+      // Update other fields
+      Object.keys(req.body).forEach((key) => {
+        if (key !== "_id") teacher[key] = req.body[key]; // Avoid overwriting _id
+      });
+
+      if (req.body.password) {
+        const salt = await bcrypt.genSalt(10);
+        teacher.password = await bcrypt.hash(req.body.password, salt);
+      }
+
+      await teacher.save();
+
+      // --- Notification logic starts here ---
+      const now = new Date();
+      const newNotification = new NotificationsModel({
+        title: "Teacher Updated",
+        description: `Teacher ${teacher.name || teacherId} has been updated.`,
+        date: now.format("YYYY-MM-DD"),
+        time: now.format("h:mm A"),
+      });
+
+      await newNotification.save();
+      // --- Notification logic ends here ---
+
+      return res.json({
+        message: "Teacher updated successfully",
+        teacher,
+      });
+    } catch (error) {
+      console.error("❌ Error:", { message: error.message });
+
+      let msg = "error in update teacher data";
+
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
-
-    // ✅ Update other fields from request body
-    Object.keys(req.body).forEach((key) => {
-      teacher[key] = req.body[key];
-    });
-   if (req.body.password) {
-      const salt = await bcrypt.genSalt(10);
-    teacher.password = await bcrypt.hash(req.body.password, salt);
-    } 
-    // Save updated teacher data
-    await teacher.save();
-
-    return res.json({
-      message: "Teacher updated successfully",
-      teacher,
-    });
-
-  } catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
-    let msg = "error in update teacher data";
-  
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0];
-      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-    } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
-    } else if (error.message) {
-      msg = error.message;
-    }
-  
-    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
-});
-
+);
 TeachersRoute.delete("/delete-teacher", userAuth, async (req, res) => {
   try {
     const teacherId = req.body._id;
-    // Ensure `_id` is a valid MongoDB ObjectId
-    if (!isValidObjectId(teacherId)) {
+    if (!mongoose.Types.ObjectId.isValid(teacherId)) {
       return res.status(400).json({ error: "Invalid ID format" });
     }
-    await TeachersModel.findByIdAndDelete(teacherId);
-    res.send("teacher deleted successfully");
+
+    // Delete teacher
+    const deletedTeacher = await TeachersModel.findByIdAndDelete(teacherId);
+    if (!deletedTeacher) {
+      return res.status(404).json({ error: "Teacher not found" });
+    }
+
+    // Prepare notification data
+    const now = moment();
+    const notification = new NotificationsModel({
+      title: "Teacher Deleted",
+      description: `Teacher with ID ${teacherId} has been deleted from the system.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+
+    // Save notification
+    await notification.save();
+
+    res
+      .status(200)
+      .json({ message: "Teacher deleted successfully and admin notified." });
   } catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
+    console.error("❌ Error:", error);
+
     let msg = "error in delete teacher data";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -205,18 +273,20 @@ TeachersRoute.get("/search-teacher", userAuth, async (req, res) => {
     res.send(GetTeacher);
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "teacher data not found";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -227,18 +297,20 @@ TeachersRoute.get("/teacher-data", userAuth, async (req, res) => {
     res.send(GetTeacher);
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "teacher data not found";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -247,57 +319,68 @@ TeachersRoute.get("/teachers-data", userAuth, async (req, res) => {
   try {
     const GetTeacher = await TeachersModel.find();
     res.send(GetTeacher);
-  }catch (error) {
+  } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "teachers data not found";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
 TeachersRoute.post("/forgot-password", async (req, res) => {
   try {
-      const { email, newPassword } = req.body;
-      // Check if the user exists
-      const userIdentify = await TeachersModel.findOne({ email });
-      if (!userIdentify) {
-          return res.status(404).json({ message: "User does not exist" });
-      }
-      // Hash the new password
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(newPassword, salt);
-      // Update the password
-      await TeachersModel.updateOne({ email }, { $set: { password: hashedPassword } });
-      res.json({ message: "Password updated successfully" });
+    const { email, newPassword } = req.body;
+    // Check if the user exists
+    const userIdentify = await TeachersModel.findOne({ email });
+    if (!userIdentify) {
+      return res.status(404).json({ message: "User does not exist" });
+    }
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    // Update the password
+    await TeachersModel.updateOne(
+      { email },
+      { $set: { password: hashedPassword } }
+    );
+    res.json({ message: "Password updated successfully" });
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "An unexpected error occurred";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
-TeachersRoute.post( "/bulk-upload", userAuth, upload.single("file"), async (req, res) => {
+TeachersRoute.post(
+  "/bulk-upload",
+  userAuth,
+  upload.single("file"),
+  async (req, res) => {
     try {
       if (!req.file) {
         return res.status(400).json(errorResponse("No file uploaded"));
@@ -341,20 +424,24 @@ TeachersRoute.post( "/bulk-upload", userAuth, upload.single("file"), async (req,
       return res
         .status(200)
         .json(successResponse("Teaching staff uploaded successfully"));
-    }catch (error) {
+    } catch (error) {
       console.error("❌ Error:", { message: error.message });
-    
+
       let msg = "An unexpected error occurred";
-    
+
       if (error.code === 11000) {
         const field = Object.keys(error.keyValue)[0];
-        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+        msg = `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } already exists`;
       } else if (error.name === "ValidationError") {
-        msg = Object.values(error.errors).map(err => err.message).join(", ");
+        msg = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", ");
       } else if (error.message) {
         msg = error.message;
       }
-    
+
       res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
   }

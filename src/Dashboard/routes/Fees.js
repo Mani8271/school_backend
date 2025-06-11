@@ -4,12 +4,23 @@ const {isValidObjectId,} = require("../../utils/validation");
 const FeesModel = require("../../models/Fees");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
-
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 FeesRoute.post("/add-fee",userAuth,async (req, res) => {
     try {
       const AddFees = new FeesModel(req.body);
       await AddFees.save();
+
+       const newNotification = new NotificationsModel({
+                              title: "New Fees Added",
+                              description: `New Fees${
+                                req.body.studentName || req.body.admissionNumber ||""
+                              } has been added successfully.`,
+                              date: now.format("YYYY-MM-DD"),
+                              time: now.format("h:mm A"),
+                            });
+                            await newNotification.save();
       res.send("Added fees Successfully");
     } catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -50,8 +61,17 @@ FeesRoute.patch("/update-fee", userAuth, async (req, res) => {
         fees[key] = req.body[key];
     });
 
-    // Save updated bus
+    // Save updated 
     await fees.save();
+
+    const newNotification = new NotificationsModel({
+                        title: "Fees Updated",
+                        description: `Fees${fees.studentName || fees.admissionNumber || feesId} has been updated.`,
+                        date: now.format("YYYY-MM-DD"),
+                        time: now.format("h:mm A"),
+                      });
+                  
+                      await newNotification.save();
 
     return res.json({
       message: "fees updated successfully",
@@ -84,6 +104,14 @@ FeesRoute.delete("/delete-fee", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await FeesModel.findByIdAndDelete(feesId);
+    const notification = new NotificationsModel({
+                  title: " Fees Data Deleted",
+                  description: ` Fees Data with ID ${feesId} has been deleted from the system.`,
+                  date: now.format("YYYY-MM-DD"),
+                  time: now.format("h:mm A"),
+                });
+                // Save notification
+                await notification.save();
     res.send("fee deleted successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });

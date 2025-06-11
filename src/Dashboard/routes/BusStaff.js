@@ -10,6 +10,8 @@ const multer = require("multer");
 const storagePath = path.join(__dirname, "../../../src/storage/busstaffimages");
 const bcrypt =require("bcrypt");
 const jwt = require("jsonwebtoken");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 
 if (!fs.existsSync(storagePath)) {
@@ -49,6 +51,16 @@ BusStaffRoute.post("/add-bus-staff",userAuth,upload.fields([{ name: "profilePhot
       }
     const AddBusStaffRoute = new BusStaffModel(req.body);
     await AddBusStaffRoute.save();
+
+          const newNotification = new NotificationsModel({
+                title: "New Bus Staff Added",
+                description: `New Bus Staff${
+                  req.body.role || req.body.name|| ""
+                } has been added successfully.`,
+                date: now.format("YYYY-MM-DD"),
+                time: now.format("h:mm A"),
+              });
+              await newNotification.save();
     res.send("Added Bus staff Successfully");
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
@@ -114,7 +126,15 @@ BusStaffRoute.patch("/update-bus-staff", userAuth, upload.fields([{ name: "profi
 
     // Save updated bus staff data
     await busstaff.save();
+const now = new Date();
+    const newNotification = new NotificationsModel({
+      title: "Bus Staff Updated",
+      description: `Bus Staff${busstaff.name || busstaffId} has been updated.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
 
+    await newNotification.save();
     return res.json({
       message: "Bus staff data updated successfully",
       busstaff,
@@ -146,6 +166,16 @@ BusStaffRoute.delete("/delete-bus-staff", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await BusStaffModel.findByIdAndDelete(busstaffId);
+     const now = moment();
+            const notification = new NotificationsModel({
+              title: " Bus Staff Deleted",
+              description: ` busstaff with ID ${busstaffId} has been deleted from the system.`,
+              date: now.format("YYYY-MM-DD"),
+              time: now.format("h:mm A"),
+            });
+        
+            // Save notification
+            await notification.save();
     res.send("bus staff deleted successfully");
   }   catch (error) {
     console.error("❌ Error:", { message: error.message });

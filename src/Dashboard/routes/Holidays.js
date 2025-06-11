@@ -4,11 +4,24 @@ const {validateEditHolidayData,isValidObjectId} = require("../../utils/validatio
 const HolidaysModel = require("../../models/Holidays");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 HolidaysRoute.post("/add-holiday", userAuth, async (req, res) => {
   try {
     const Addholiday = new HolidaysModel(req.body);
     await Addholiday.save();
+
+const newNotification = new NotificationsModel({
+        title: "New Holiday Added",
+        description: `New Holiday ${
+          req.body.name || ""
+        } has been added successfully.`,
+        date: now.format("YYYY-MM-DD"),
+        time: now.format("h:mm A"),
+      });
+      await newNotification.save();
+
     res.send("Added holiday Successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });
@@ -45,10 +58,20 @@ HolidaysRoute.patch("/update-holiday-data", userAuth, async (req, res) => {
     if (!updatedholiday) {
       return res.status(404).json({ error: "holiday not found" });
     }
+    const newNotification = new NotificationsModel({
+            title: "Holiday Updated",
+            description: `Holiday ${updatedholiday.name || holidayId} has been updated.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+    
+          await newNotification.save();
     return res.json({
       message: "holiday data updated successfully",
       holiday: updatedholiday,
+      
     });
+    
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });
   
@@ -75,6 +98,18 @@ HolidaysRoute.delete("/delete-holiday-data", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await HolidaysModel.findByIdAndDelete(holidayId);
+
+  const now = moment();
+    const notification = new NotificationsModel({
+      title: "Holiday Data Deleted",
+      description: `Holiday with ID ${holidayId} has been deleted from the system.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+
+    // Save notification
+    await notification.save();
+
     res.send("holiday data deleted successfully");
   } catch (error) {
     console.error("❌ Error:", { message: error.message });

@@ -4,12 +4,23 @@ const {isValidObjectId} = require("../../utils/validation");
 const SectionModel = require("../../models/SectionList");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
-
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 SectionRoute.post("/add-section",userAuth,async (req, res) => {
     try {
       const AddSection = new SectionModel(req.body);
       await AddSection.save();
+      const now = moment();
+                      const newNotification = new NotificationsModel({
+                        title: "New Section Added",
+                        description: `Section ${
+                          req.body.sectionName || req.body.className || ""
+                        } has been added successfully.`,
+                        date: now.format("YYYY-MM-DD"),
+                        time: now.format("h:mm A"),
+                      });
+                      await newNotification.save();
       res.send("Added section Successfully");
     }  catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -54,6 +65,17 @@ SectionRoute.patch("/update-section", userAuth, async (req, res) => {
     // Save updated bus
     await Section.save();
 
+    const now = new Date();
+                  const newNotification = new NotificationsModel({
+                    title: "Section Updated",
+                    description: `Section ${Section.sectionId || sectionId} has been updated.`,
+                    date: now.format("YYYY-MM-DD"),
+                    time: now.format("h:mm A"),
+                  });
+            
+                  await newNotification.save();
+    
+
     return res.json({
       message: "sections updated successfully",
       Section,
@@ -85,6 +107,16 @@ SectionRoute.delete("/delete-section", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await SectionModel.findByIdAndDelete(sectionId);
+    const now = moment();
+                    const notification = new NotificationsModel({
+                      title: "Section Deleted",
+                      description: `Section with ID ${sectionId} has been deleted from the system.`,
+                      date: now.format("YYYY-MM-DD"),
+                      time: now.format("h:mm A"),
+                    });
+                
+                    // Save notification
+                    await notification.save();
     res.send("section deleted successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });

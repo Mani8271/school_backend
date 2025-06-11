@@ -11,6 +11,8 @@ const fs = require("fs");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
 const storagePath = path.join(__dirname, "../../../src/storage/eventimages");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 if (!fs.existsSync(storagePath)) {
   fs.mkdirSync(storagePath, { recursive: true });
@@ -45,6 +47,16 @@ EventsRoute.post( "/add-event", userAuth, upload.single("eventImage"), async (re
       }
       const AddEvent = new EventsModel(req.body);
       await AddEvent.save();
+
+      const newNotification = new NotificationsModel({
+            title: "New Event Added",
+            description: `New Event${
+              req.body.eventName ||  ""
+            } has been added successfully.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+          await newNotification.save();
       res.send("Added Event Successfully");
     }  catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -103,6 +115,15 @@ EventsRoute.patch("/update-event-data", userAuth, upload.single("eventImage"), a
       // ✅ Save the updated event
       await event.save();
 
+      const newNotification = new NotificationsModel({
+            title: "Event Updated",
+            description: `Event${event.eventName || eventId} has been updated.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+      
+          await newNotification.save();
+
       return res.json({
           message: "Event data updated successfully",
           event,
@@ -134,6 +155,16 @@ EventsRoute.delete("/delete-event-data", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await EventsModel.findByIdAndDelete(eventId);
+
+const notification = new NotificationsModel({
+      title: " Event Deleted",
+      description: ` Event with ID ${eventId} has been deleted from the system.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+    // Save notification
+    await notification.save();
+
     res.send("event data deleted successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });

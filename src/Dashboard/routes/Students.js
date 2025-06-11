@@ -10,6 +10,8 @@ const multer = require("multer");
 const path = require("path");
 const bcrypt =require("bcrypt");
 const jwt = require("jsonwebtoken");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 const storagePath = path.join(__dirname, "../../../src/storage/studentimages");
 
@@ -53,6 +55,16 @@ StudentsRoute.post("/add-students", userAuth, upload.single("ProfilePicture"), a
 
     const AddStudents = new StudentsModel(req.body);
     await AddStudents.save();
+    const now = moment();
+          const newNotification = new NotificationsModel({
+            title: "New Student Added",
+            description: `Student ${
+              req.body.name || ""
+            } has been added successfully.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+          await newNotification.save();
 
     res.send("Added Student Successfully");
   }catch (error) {
@@ -157,7 +169,15 @@ StudentsRoute.patch("/update-student", userAuth, upload.single("ProfilePicture")
 
     // Save updated student data
     await student.save();
-
+const now = new Date();
+          const newNotification = new NotificationsModel({
+            title: "Student Updated",
+            description: `Student ${student.studentName || studentId} has been updated.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+    
+          await newNotification.save();
     return res.json({
       message: "Student data updated successfully",
       student,
@@ -189,6 +209,16 @@ StudentsRoute.delete("/delete-student", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await StudentsModel.findByIdAndDelete(studentId);
+    const now = moment();
+            const notification = new NotificationsModel({
+              title: "Student Deleted",
+              description: `Student with ID ${studentId} has been deleted from the system.`,
+              date: now.format("YYYY-MM-DD"),
+              time: now.format("h:mm A"),
+            });
+        
+            // Save notification
+            await notification.save();
     res.send("student deleted successfully");
   } catch (error) {
     console.error("❌ Error:", { message: error.message });

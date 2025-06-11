@@ -4,6 +4,8 @@ const {isValidObjectId} = require("../../utils/validation");
 const ClassTimeTableModel = require("../../models/ClassTimeTable");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 
 ClassTimeTableRoute.post("/add-class-timetable",userAuth,async (req, res) => {
@@ -12,6 +14,16 @@ ClassTimeTableRoute.post("/add-class-timetable",userAuth,async (req, res) => {
       const AddClassTimeTable = new ClassTimeTableModel(req.body);
 
       await AddClassTimeTable.save();
+const newNotification = new NotificationsModel({
+                title: "New Class Timetable Added",
+                description: `New Class Timetable${
+                  req.body.class || req.body.section|| ""
+                } has been added successfully.`,
+                date: now.format("YYYY-MM-DD"),
+                time: now.format("h:mm A"),
+              });
+              await newNotification.save();
+
       res.send("Added class time table Successfully");
     }  catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -56,6 +68,16 @@ ClassTimeTableRoute.patch("/update-class-timetable", userAuth, async (req, res) 
     // Save updated bus
     await TimeTable.save();
 
+    const now = new Date();
+        const newNotification = new NotificationsModel({
+          title: "Class Timetable Updated",
+          description: `Class Timetable${TimeTable.class || TimeTable.section || timetableId} has been updated.`,
+          date: now.format("YYYY-MM-DD"),
+          time: now.format("h:mm A"),
+        });
+    
+        await newNotification.save();
+
     return res.json({
       message: "time table updated successfully",
       TimeTable,
@@ -87,6 +109,17 @@ ClassTimeTableRoute.delete("/delete-class-timetable", userAuth, async (req, res)
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await ClassTimeTableModel.findByIdAndDelete(timetableId);
+
+    const now = moment();
+                const notification = new NotificationsModel({
+                  title: " Class Timetable Deleted",
+                  description: ` Class Timetable with ID ${timetableId} has been deleted from the system.`,
+                  date: now.format("YYYY-MM-DD"),
+                  time: now.format("h:mm A"),
+                });
+            
+                // Save notification
+                await notification.save();
     res.send("class time table deleted successfully");
   } catch (error) {
     console.error("❌ Error:", { message: error.message });

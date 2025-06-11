@@ -1,8 +1,6 @@
 const express = require("express");
 const systemUserRoute = express.Router();
-const {
-  validateSystemUserData
-} = require("../../utils/validation");
+const { validateSystemUserData } = require("../../utils/validation");
 const bcrypt = require("bcrypt");
 const systemUsersModel = require("../../models/systemUsers");
 const jwt = require("jsonwebtoken");
@@ -12,8 +10,8 @@ const { json } = require("body-parser");
 const fs = require("fs");
 const { error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
-
-
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
 
 if (!fs.existsSync(storagePath)) {
@@ -39,43 +37,57 @@ var upload = multer({
   },
 });
 
+systemUserRoute.post(
+  "/register",
+  upload.single("profilePicture"),
+  async (req, res) => {
+    try {
+      const hashPassword = await bcrypt.hash(req.body.password, 10);
+      req.body.password = hashPassword;
 
-systemUserRoute.post("/register", upload.single("profilePicture"), async (req, res) => {
-  try {
-    
-    const hashPassword = await bcrypt.hash(req.body.password, 10);
-    req.body.password = hashPassword;
+      if (req.file) {
+        req.body.profilePicture = `${req.file.filename}`;
+      } else {
+        console.log("No file uploaded");
+      }
 
-    if (req.file) {
-      req.body.profilePicture = `${req.file.filename}`;
-    } else {
-      console.log("No file uploaded");
+      const user = new systemUsersModel(req.body);
+      await user.save();
+
+      // ✅ Create a notification
+      const now = moment();
+      const notification = new NotificationsModel({
+        title: "New User Registered",
+        description: `A new user named "${user.firstName} ${user.lastName}" has registered.`,
+        date: now.format("YYYY-MM-DD"),
+        time: now.format("h:mm A"), // <-- 2:35 PM format here
+      });
+
+      await notification.save(); // Save notification to DB
+
+      res.json({ message: "User added successfully", user });
+    } catch (error) {
+      console.error("❌ Error:", { message: error.message });
+
+      let msg = "error in adding user";
+
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
-
-    const user = new systemUsersModel(req.body);
-    await user.save();
-
-    res.json({ message: "User added successfully", user });
   }
-  catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
-    let msg = "error in adding user";
-  
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0];
-      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-    } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
-    } else if (error.message) {
-      msg = error.message;
-    }
-  
-    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
-  }
-  
-});
-
+);
 
 systemUserRoute.post("/login", async (req, res) => {
   try {
@@ -93,7 +105,11 @@ systemUserRoute.post("/login", async (req, res) => {
     }
 
     // Role check
-    if (user.role !== "Admin" && user.role !== "Super Admin" && user.role !== "Bus Admin") {
+    if (
+      user.role !== "Admin" &&
+      user.role !== "Super Admin" &&
+      user.role !== "Bus Admin"
+    ) {
       return res.status(403).json({ message: "Invalid user role" });
     }
 
@@ -104,27 +120,33 @@ systemUserRoute.post("/login", async (req, res) => {
     );
 
     res.cookie("token", token, { httpOnly: true }); // Secure cookie
-    res.json({ message: "Login successful", token ,  user: { 
-      _id: user._id,
-      email: user.email,
-      firstName: user.firstName,
-      role: user.role,  // Add additional fields as needed
-      profilePicture: user.profilePicture
-    } });
+    res.json({
+      message: "Login successful",
+      token,
+      user: {
+        _id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        role: user.role, // Add additional fields as needed
+        profilePicture: user.profilePicture,
+      },
+    });
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "unable to login";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -133,20 +155,22 @@ systemUserRoute.get("/profile", userAuth, async (req, res) => {
   try {
     const user = req.user;
     res.send(user);
-  }catch (error) {
+  } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "failed to get user data";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
@@ -160,132 +184,154 @@ systemUserRoute.get("/all-profiles", userAuth, async (req, res) => {
     res.send(users);
   } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "failed to get all users data";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
 
-systemUserRoute.patch("/user-update", userAuth, upload.single("profilePicture"), async (req, res) => {
-  try {
-    const loggedinUser = req.user;
-    if (!loggedinUser) {
-      return res.status(404).json({ error: "User not found" });
-    }
-
-    // ✅ Handle Profile Picture Update
-    if (req.file) {
-      const oldImagePath = path.join(__dirname, "../../../src/storage/userdp", loggedinUser.profilePicture);
-
-      // Delete old image if it exists
-      if (loggedinUser.profilePicture && fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
-        console.log("✅ Old image deleted:", loggedinUser.profilePicture);
+systemUserRoute.patch(
+  "/user-update",
+  userAuth,
+  upload.single("profilePicture"),
+  async (req, res) => {
+    try {
+      const loggedinUser = req.user;
+      if (!loggedinUser) {
+        return res.status(404).json({ error: "User not found" });
       }
 
-      // Assign new image filename
-      loggedinUser.profilePicture = req.file.filename;
+      if (req.file) {
+        const oldImagePath = path.join(
+          __dirname,
+          "../../../src/storage/userdp",
+          loggedinUser.profilePicture
+        );
+        if (loggedinUser.profilePicture && fs.existsSync(oldImagePath)) {
+          fs.unlinkSync(oldImagePath);
+          console.log("✅ Old image deleted:", loggedinUser.profilePicture);
+        }
+        loggedinUser.profilePicture = req.file.filename;
+      }
+
+      Object.keys(req.body).forEach((key) => {
+        loggedinUser[key] = req.body[key];
+      });
+
+      await loggedinUser.save();
+
+      // ✅ Create notification for admin
+      const now = new Date();
+      const notification = new Notification({
+        title: "User Profile Updated",
+        description: `${loggedinUser.firstName} ${loggedinUser.lastName} updated their profile.`,
+        date: now.format("YYYY-MM-DD"),
+        time: now.format("h:mm A"),
+      });
+
+      await notification.save();
+
+      res.json({
+        message: `${loggedinUser.firstName}, your profile updated successfully`,
+        data: loggedinUser,
+      });
+    } catch (error) {
+      console.error("❌ Error:", { message: error.message });
+      let msg = "failed to update user";
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
-
-    // ✅ Update other fields from request body
-    Object.keys(req.body).forEach((key) => {
-      loggedinUser[key] = req.body[key];
-    });
-
-    // Save updated user data
-    await loggedinUser.save();
-
-    res.json({
-      message: `${loggedinUser.firstName}, your profile updated successfully`,
-      data: loggedinUser,
-    });
-
-  } catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
-    let msg = "failed to update user";
-  
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0];
-      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-    } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
-    } else if (error.message) {
-      msg = error.message;
-    }
-  
-    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
-});
+);
 
 systemUserRoute.post("/logout", async (req, res) => {
   res.cookie("token", null, { expires: new Date(Date.now()) });
   res.send("logged out successfully");
 });
 
-systemUserRoute.get("/search",userAuth,async(req,res)=>
-{
+systemUserRoute.get("/search", userAuth, async (req, res) => {
   try {
     const findUser = await systemUsersModel.findOne(req.body);
-  res.send(findUser)
-} catch (error) {
-  console.error("❌ Error:", { message: error.message });
+    res.send(findUser);
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
 
-  let msg = "user data not found";
+    let msg = "user data not found";
 
-  if (error.code === 11000) {
-    const field = Object.keys(error.keyValue)[0];
-    msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-  } else if (error.name === "ValidationError") {
-    msg = Object.values(error.errors).map(err => err.message).join(", ");
-  } else if (error.message) {
-    msg = error.message;
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
-
-  res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
-}
-})
+});
 
 systemUserRoute.post("/forgot-password", async (req, res) => {
-    try {
-        const { email, newPassword } = req.body;
-        // Check if the user exists
-        const userIdentify = await systemUsersModel.findOne({ email });
-        if (!userIdentify) {
-            return res.status(404).json({ message: "User does not exist" });
-        }
-        // Hash the new password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(newPassword, salt);
-        // Update the password
-        await systemUsersModel.updateOne({ email }, { $set: { password: hashedPassword } });
-        res.json({ message: "Password updated successfully" });
-    } catch (error) {
-      console.error("❌ Error:", { message: error.message });
-    
-      let msg = "password not changed";
-    
-      if (error.code === 11000) {
-        const field = Object.keys(error.keyValue)[0];
-        msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-      } else if (error.name === "ValidationError") {
-        msg = Object.values(error.errors).map(err => err.message).join(", ");
-      } else if (error.message) {
-        msg = error.message;
-      }
-    
-      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+  try {
+    const { email, newPassword } = req.body;
+    // Check if the user exists
+    const userIdentify = await systemUsersModel.findOne({ email });
+    if (!userIdentify) {
+      return res.status(404).json({ message: "User does not exist" });
     }
+    // Hash the new password
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    // Update the password
+    await systemUsersModel.updateOne(
+      { email },
+      { $set: { password: hashedPassword } }
+    );
+    res.json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("❌ Error:", { message: error.message });
+
+    let msg = "password not changed";
+
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyValue)[0];
+      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+    } else if (error.name === "ValidationError") {
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
+    } else if (error.message) {
+      msg = error.message;
+    }
+
+    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+  }
 });
 
 // systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
@@ -309,9 +355,9 @@ systemUserRoute.post("/forgot-password", async (req, res) => {
 //         res.json({ message: "Password updated successfully" });
 //     } catch (error) {
 //       console.error("❌ Error:", { message: error.message });
-    
+
 //       let msg = "failed to reset password";
-    
+
 //       if (error.code === 11000) {
 //         const field = Object.keys(error.keyValue)[0];
 //         msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -320,12 +366,10 @@ systemUserRoute.post("/forgot-password", async (req, res) => {
 //       } else if (error.message) {
 //         msg = error.message;
 //       }
-    
+
 //       res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
 //     }
 // });
-
-
 
 systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
   try {
@@ -333,7 +377,9 @@ systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
     const { password: oldPassword, newPassword } = req.body;
 
     if (!oldPassword || !newPassword) {
-      return res.status(400).json({ message: "Old and new passwords are required" });
+      return res
+        .status(400)
+        .json({ message: "Old and new passwords are required" });
     }
 
     // Verify old password
@@ -351,7 +397,6 @@ systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
     );
 
     res.status(200).json({ message: "Password updated successfully" });
-
   } catch (error) {
     console.error("❌ Error:", error);
 
@@ -361,7 +406,9 @@ systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
     } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
+      msg = Object.values(error.errors)
+        .map((err) => err.message)
+        .join(", ");
     } else if (error.message) {
       msg = error.message;
     }
@@ -370,40 +417,45 @@ systemUserRoute.post("/reset-password", userAuth, async (req, res) => {
   }
 });
 
+systemUserRoute.get(
+  "/get-logged-in-user-details",
+  userAuth,
+  async (req, res) => {
+    try {
+      // Extract user details from request
+      const user = req.user;
 
-systemUserRoute.get("/get-logged-in-user-details", userAuth, async (req, res) => {
-  try {
-    // Extract user details from request
-    const user = req.user; 
-    
-    // If no user found (edge case)
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      // If no user found (edge case)
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Respond with user details
+      res.status(200).json({
+        success: true,
+        user,
+      });
+    } catch (error) {
+      console.error("❌ Error:", { message: error.message });
+
+      let msg = "error getting logged in details";
+
+      if (error.code === 11000) {
+        const field = Object.keys(error.keyValue)[0];
+        msg = `${
+          field.charAt(0).toUpperCase() + field.slice(1)
+        } already exists`;
+      } else if (error.name === "ValidationError") {
+        msg = Object.values(error.errors)
+          .map((err) => err.message)
+          .join(", ");
+      } else if (error.message) {
+        msg = error.message;
+      }
+
+      res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
     }
-
-    // Respond with user details
-    res.status(200).json({
-      success: true,
-      user
-    });
-
-  } catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
-    let msg = "error getting logged in details";
-  
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyValue)[0];
-      msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
-    } else if (error.name === "ValidationError") {
-      msg = Object.values(error.errors).map(err => err.message).join(", ");
-    } else if (error.message) {
-      msg = error.message;
-    }
-  
-    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
-});
-
+);
 
 module.exports = systemUserRoute;

@@ -4,7 +4,8 @@ const {isValidObjectId, validateEditExamData} = require("../../utils/validation"
 const ExamListModel = require("../../models/ExamList");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
-
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 const fs = require("fs");
 const csv = require("csv-parser");
 const multer = require("multer")
@@ -28,6 +29,15 @@ ExamListRoute.post("/add-exam",userAuth,async (req, res) => {
     try {
       const AddExam = new ExamListModel(req.body);
       await AddExam.save();
+      const newNotification = new NotificationsModel({
+                  title: "New Exam Added",
+                  description: `New Exam${
+                    req.body.class || req.body.section ||req.body.examType || ""
+                  } has been added successfully.`,
+                  date: now.format("YYYY-MM-DD"),
+                  time: now.format("h:mm A"),
+                });
+                await newNotification.save();
       res.send("Added exam Successfully");
     }  catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -72,6 +82,15 @@ ExamListRoute.patch("/update-exam", userAuth, async (req, res) => {
     // Save updated bus
     await exams.save();
 
+    const newNotification = new NotificationsModel({
+                title: "Exam List Updated",
+                description: `Exam${exams.class || exams.section || exams.examType || examId} has been updated.`,
+                date: now.format("YYYY-MM-DD"),
+                time: now.format("h:mm A"),
+              });
+          
+              await newNotification.save();
+
     return res.json({
       message: "exam updated successfully",
       exams,
@@ -103,6 +122,14 @@ ExamListRoute.delete("/delete-exam", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await ExamListModel.findByIdAndDelete(examId);
+    const notification = new NotificationsModel({
+          title: " Exam Deleted",
+          description: ` Exam with ID ${examId} has been deleted from the system.`,
+          date: now.format("YYYY-MM-DD"),
+          time: now.format("h:mm A"),
+        });
+        // Save notification
+        await notification.save();
     res.send("exam deleted successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });

@@ -4,6 +4,8 @@ const {isValidObjectId, validateEditExamResultData} = require("../../utils/valid
 const ExamResultModel = require("../../models/ExamResult");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 const fs = require("fs");
 const csv = require("csv-parser");
@@ -28,6 +30,16 @@ ExamResultRoute.post("/add-exam-result",userAuth,async (req, res) => {
     try {
       const AddExamResult = new ExamResultModel(req.body);
       await AddExamResult.save();
+
+      const newNotification = new NotificationsModel({
+                        title: "New Exam Result Added",
+                        description: `New Exam Result${
+                          req.body.class || req.body.section ||req.body.examType ||""
+                        } has been added successfully.`,
+                        date: now.format("YYYY-MM-DD"),
+                        time: now.format("h:mm A"),
+                      });
+                      await newNotification.save();
       res.send("Added exam result Successfully");
     }  catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -71,6 +83,15 @@ ExamResultRoute.patch("/update-exam-result", userAuth, async (req, res) => {
 
     await results.save();
 
+    const newNotification = new NotificationsModel({
+                    title: "Exam Result Updated",
+                    description: `Exam Result${results.class || results.section || results.examType || resultId} has been updated.`,
+                    date: now.format("YYYY-MM-DD"),
+                    time: now.format("h:mm A"),
+                  });
+              
+                  await newNotification.save();
+
     return res.json({
       message: "exam results updated successfully",
       results,
@@ -102,6 +123,14 @@ ExamResultRoute.delete("/delete-exam-result", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await ExamResultModel.findByIdAndDelete(resultId);
+    const notification = new NotificationsModel({
+              title: " Exam Result Deleted",
+              description: ` Exam Result with ID ${resultId} has been deleted from the system.`,
+              date: now.format("YYYY-MM-DD"),
+              time: now.format("h:mm A"),
+            });
+            // Save notification
+            await notification.save();
     res.send("exam result deleted successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });

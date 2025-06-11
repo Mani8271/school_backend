@@ -4,11 +4,23 @@ const {isValidObjectId,validateEditBusRouteData} = require("../../utils/validati
 const BusRouteModel = require("../../models/BusRoutes");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
+
 
 BusRoute.post("/add-bus-route",userAuth,async (req, res) => {
     try {
       const AddBusRoute = new BusRouteModel(req.body);
       await AddBusRoute.save();
+      const newNotification = new NotificationsModel({
+            title: "New Bus Route Added",
+            description: `New Bus Route${
+              req.body.route || ""
+            } has been added successfully.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+          await newNotification.save();
       res.send("Added Bus Route Successfully");
     } catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -47,6 +59,16 @@ BusRoute.patch("/update-bus-route", userAuth, async (req, res) => {
     });
     // Save updated bus
     await busroute.save();
+const now = new Date();
+    const newNotification = new NotificationsModel({
+      title: "Bus Route Updated",
+      description: `Bus ${bus.route || busrouteId} has been updated.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+
+    await newNotification.save();
+
     return res.json({
       message: "Bus data updated successfully",
       busroute,
@@ -77,6 +99,16 @@ BusRoute.delete("/delete-bus-route", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await BusRouteModel.findByIdAndDelete(busrouteId);
+    const now = moment();
+        const notification = new NotificationsModel({
+          title: " Bus Route Deleted",
+          description: ` busroute with ID ${busrouteId} has been deleted from the system.`,
+          date: now.format("YYYY-MM-DD"),
+          time: now.format("h:mm A"),
+        });
+    
+        // Save notification
+        await notification.save();
     res.send("bus route deleted successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });

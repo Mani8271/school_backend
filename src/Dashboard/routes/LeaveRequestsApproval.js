@@ -4,11 +4,23 @@ const {isValidObjectId,} = require("../../utils/validation");
 const LeaveRequestsModel = require("../../models/LeaveRequestApproval");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
+const moment = require("moment");
+const NotificationsModel = require("../../models/Notifications");
 
 LeaveRequestRoute.post("/add-leave-approval",userAuth,async (req, res) => {
     try {
       const Addleaverequest = new LeaveRequestsModel(req.body);
       await Addleaverequest.save();
+const newNotification = new NotificationsModel({
+        title: "New Leave Approval Added",
+        description: `New Leave Approval ${
+          req.body.Name || ""
+        } has been added successfully.`,
+        date: now.format("YYYY-MM-DD"),
+        time: now.format("h:mm A"),
+      });
+      await newNotification.save();
+
       res.send("Added leaverequest Successfully");
     }  catch (error) {
       console.error("❌ Error:", { message: error.message });
@@ -47,6 +59,16 @@ LeaveRequestRoute.patch("/update-leave-approval-data", userAuth, async (req, res
     });
     // Save updated leaverequest
     await leaverequest.save();
+
+ const newNotification = new NotificationsModel({
+            title: "Leave Approval Updated",
+            description: `Leave Approval  ${updatedholiday.Name || leaverequestId} has been updated.`,
+            date: now.format("YYYY-MM-DD"),
+            time: now.format("h:mm A"),
+          });
+    
+          await newNotification.save();
+
     return res.json({
       message: "leaverequest data updated successfully",
       leaverequest,
@@ -77,6 +99,18 @@ LeaveRequestRoute.delete("/delete-leave-approval", userAuth, async (req, res) =>
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await LeaveRequestsModel.findByIdAndDelete(leaverequestId);
+
+const now = moment();
+    const notification = new NotificationsModel({
+      title: "Leave Approval Deleted",
+      description: `Leave Approval with ID ${leaverequestId} has been deleted from the system.`,
+      date: now.format("YYYY-MM-DD"),
+      time: now.format("h:mm A"),
+    });
+
+    // Save notification
+    await notification.save();
+
     res.send("leaverequest data deleted successfully");
   }  catch (error) {
     console.error("❌ Error:", { message: error.message });
