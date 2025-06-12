@@ -115,7 +115,8 @@ TeachersTimetableRoute.delete(
   userAuth,
   async (req, res) => {
     try {
-      const timetableId = req.body._id;
+      const timetableId = req.body.data._id;
+
       // Ensure `_id` is a valid MongoDB ObjectId
       if (!isValidObjectId(timetableId)) {
         return res.status(400).json({ error: "Invalid ID format" });
