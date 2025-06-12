@@ -12,7 +12,14 @@ const BusAssignSchema = new mongoose.Schema({
     route: {  // Renamed from "Route"
         type: String,
         
-    }
+    },
+    student_id:{
+        type: String,
+    },
+    bus_number: {
+        type: String,
+        
+    },
 }
 ,
 {
