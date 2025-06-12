@@ -72,7 +72,7 @@ TeachersTimetableRoute.patch(
       });
       // Save updated bus
       await timetable.save();
-      const now = new Date();
+      const now = moment();
       const newNotification = new NotificationsModel({
         title: "Teachers TimeTable Updated",
         description: `Timetable ${
