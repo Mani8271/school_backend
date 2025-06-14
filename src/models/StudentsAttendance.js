@@ -56,11 +56,7 @@ const StudentsAttendanceSchema = new mongoose.Schema(
             type: String,
 
         },
-          student:
-        {
-            type: String,
-
-        },
+      
         status:
         {
             type: String,

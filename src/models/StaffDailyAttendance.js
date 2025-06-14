@@ -25,6 +25,11 @@ const StaffDailyAttendanceSchema = new mongoose.Schema(
             
             enum: ["Present", "Absent"], // Only allow Active and Inactive
           },
+           staffType: {
+      type: String,
+      required: true,
+      enum: ["Teaching", "Non-Teaching"], // ✅ Add this
+    },
     },
     { timestamps: true }
 )

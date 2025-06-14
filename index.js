@@ -15,6 +15,7 @@ app.use(cors({
   exposedHeaders: ["Authorization"]  // Expose Authorization header if needed
 }));
 
+const LeaveRequestsApproval = require("./src/Dashboard/routes/LeaveRequestsApproval");
 
 const systemUser = require("./src/Dashboard/routes/SystemUsers")
 const Holidays = require("./src/Dashboard/routes/Holidays")
@@ -41,6 +42,7 @@ const TeachersTimetable = require("./src/Dashboard/routes/TeachersTimetable")
 const TeachingStaff = require("./src/Dashboard/routes/TeachingStaff")
 const StaffLeaveRequests = require("./src/Dashboard/routes/StaffLeaves")
 const NoticeBoard = require("./src/Dashboard/routes/NoticeBoard")
+const StudentAttendance = require("./src/Dashboard/routes/StudentAttendance")
 
 const holidays = require("./src/App/routes/Holidays");
 const busList = require("./src/App/routes/BusList");
@@ -70,6 +72,8 @@ const studentHomework = require("./src/App/routes/StudentHomework");
 const Studentattendances = require("./src/App/routes/StudentAttendance")
 const Teachercomplaints =require("./src/App/routes/TeacherComplaints")
 
+app.use("/LeaveRequestsApproval", LeaveRequestsApproval);
+
 app.use('/userdp', express.static(path.join(__dirname, 'src/storage/userdp')));
 app.use('/blogimages', express.static(path.join(__dirname, 'src/storage/blogimages')));
 app.use("/noticeimages", express.static(path.join(__dirname, "src/storage/noticefiles")));
@@ -98,6 +102,7 @@ app.use("/teachersTimetable",TeachersTimetable)
 app.use("/teachingStaff",TeachingStaff)
 app.use("/staffLeaves",StaffLeaveRequests)
 app.use("/noticeBoard",NoticeBoard)
+app.use("/StudentAttendance",StudentAttendance)
 
 
 app.use("/app/holidays", holidays);
