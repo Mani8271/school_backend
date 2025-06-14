@@ -7,6 +7,7 @@ const {
 const StaffAttendanceModel = require("../../models/StaffDailyAttendance");
 const { Error } = require("console");
 const { userAuth } = require("../../middlewares/auth");
+const mongoose = require("mongoose");
 
 StaffDailyAttendanceRoute.post( "/add-staff-daily-attendance", userAuth,async (req, res) => {
     try {

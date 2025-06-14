@@ -30,7 +30,7 @@ ExamResultRoute.post("/add-exam-result",userAuth,async (req, res) => {
     try {
       const AddExamResult = new ExamResultModel(req.body);
       await AddExamResult.save();
-
+       const now = moment();
       const newNotification = new NotificationsModel({
                         title: "New Exam Result Added",
                         description: `New Exam Result${
@@ -82,7 +82,7 @@ ExamResultRoute.patch("/update-exam-result", userAuth, async (req, res) => {
     });
 
     await results.save();
-
+ const now = moment();
     const newNotification = new NotificationsModel({
                     title: "Exam Result Updated",
                     description: `Exam Result${results.class || results.section || results.examType || resultId} has been updated.`,
@@ -123,6 +123,7 @@ ExamResultRoute.delete("/delete-exam-result", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await ExamResultModel.findByIdAndDelete(resultId);
+     const now = moment();
     const notification = new NotificationsModel({
               title: " Exam Result Deleted",
               description: ` Exam Result with ID ${resultId} has been deleted from the system.`,

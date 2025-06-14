@@ -15,8 +15,18 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const NotificationsModel = require("../../models/Notifications");
+const mongoose = require("mongoose");
 
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
+const successResponse = (message, data = {}) => ({
+  message,
+  data,
+});
+
+const errorResponse = (message, errors = []) => ({
+  message,
+  errors,
+});
 
 if (!fs.existsSync(storagePath)) {
   fs.mkdirSync(storagePath, { recursive: true });
