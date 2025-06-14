@@ -51,7 +51,7 @@ BusStaffRoute.post("/add-bus-staff",userAuth,upload.fields([{ name: "profilePhot
       }
     const AddBusStaffRoute = new BusStaffModel(req.body);
     await AddBusStaffRoute.save();
-
+  const now = moment();
           const newNotification = new NotificationsModel({
                 title: "New Bus Staff Added",
                 description: `New Bus Staff${
@@ -126,7 +126,8 @@ BusStaffRoute.patch("/update-bus-staff", userAuth, upload.fields([{ name: "profi
 
     // Save updated bus staff data
     await busstaff.save();
-const now = new Date();
+
+ const now = moment();
     const newNotification = new NotificationsModel({
       title: "Bus Staff Updated",
       description: `Bus Staff${busstaff.name || busstaffId} has been updated.`,

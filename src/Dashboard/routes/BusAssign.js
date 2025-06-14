@@ -63,7 +63,7 @@ BusAssignRoute.patch("/update-assign-bus", userAuth, async (req, res) => {
     });
     // Save updated bus
     await busassign.save();
-    const now = new Date();
+   const now = moment();
     const newNotification = new NotificationsModel({
       title: "Bus Assign Updated",
       description: `Bus Assign ${

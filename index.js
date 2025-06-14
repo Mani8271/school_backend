@@ -77,6 +77,7 @@ app.use("/LeaveRequestsApproval", LeaveRequestsApproval);
 app.use('/userdp', express.static(path.join(__dirname, 'src/storage/userdp')));
 app.use('/blogimages', express.static(path.join(__dirname, 'src/storage/blogimages')));
 app.use("/noticeimages", express.static(path.join(__dirname, "src/storage/noticefiles")));
+app.use("/busstaffimages", express.static(path.join(__dirname, "src/storage/busstaffimages")));
 app.use("/systemUsers",systemUser)
 app.use("/holidays",Holidays)
 app.use("/blogs",Blogs)
