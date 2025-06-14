@@ -3,6 +3,10 @@ const mongoose = require("mongoose");
 
 const ExamResultSchema = new mongoose.Schema(
   {
+    studentId: {  
+      type: String,
+      
+    },
     studentName: {
       type: String,
       
