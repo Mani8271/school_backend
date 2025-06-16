@@ -1,0 +1,6 @@
+name,department,designation,gender,experience,joiningDate,maritalStatus,emergencyContactNumber,address,city,email,mobileNumber,ProfilePicture,password
+Rajesh Kumar,Administration,Clerk,Male,5,2018-06-01,Married,9876543210,123 Green St,Mumbai,rajesh.kumar@example.com,9123456789,rajesh.jpg,hashed_password_1
+Suman Verma,Finance,Accountant,Female,7,2016-04-15,Unmarried,9876543211,456 Blue St,Delhi,suman.verma@example.com,9234567890,suman.jpg,hashed_password_2
+Anil Singh,Maintenance,Supervisor,Male,10,2014-09-20,Married,9876543212,789 Red St,Chennai,anil.singh@example.com,9345678901,anil.jpg,hashed_password_3
+Priya Das,Library,Assistant Librarian,Female,3,2020-11-05,Unmarried,9876543213,321 Yellow St,Kolkata,priya.das@example.com,9456789012,priya.jpg,hashed_password_4
+Alex John,IT,Technician,Others,2,2022-01-12,Unmarried,9876543214,654 Purple St,Bangalore,alex.john@example.com,9567890123,alex.jpg,hashed_password_5

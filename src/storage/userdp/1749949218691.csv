@@ -1,0 +1,6 @@
+teacherName,subject,gender,qualification,experience,joiningDate,maritalStatus,emergencyContactNumber,address,city,email,mobileNumber,password,about,ProfilePicture
+Aarti Sharma,Mathematics,Female,M.Sc,5 years,2020-06-01,married,9876543210,123 Main Street,Delhi,aarti.sharma@example.com,9123456789,password123,Experienced math teacher with passion for teaching,https://example.com/images/aarti.jpg
+Rajeev Menon,Physics,Male,M.Tech,8 years,2018-03-15,married,9876543211,456 Science Lane,Mumbai,rajeev.menon@example.com,9234567890,securepass456,Loves experiments and hands-on teaching,https://example.com/images/rajeev.jpg
+Priya Kapoor,Chemistry,Female,Ph.D,6 years,2019-08-25,unmarried,9876543212,789 Chemical Road,Bangalore,priya.kapoor@example.com,9345678901,chemistry2023,Focuses on organic chemistry and labs,https://example.com/images/priya.jpg
+Vinod Reddy,Biology,Male,M.Sc,4 years,2021-01-10,unmarried,9876543213,101 Bio Colony,Hyderabad,vinod.reddy@example.com,9456789012,bio@2023,Passionate about genetics and botany,https://example.com/images/vinod.jpg
+Sneha Das,English,Female,MA,3 years,2022-07-01,unmarried,9876543214,202 Literature Street,Kolkata,sneha.das@example.com,9567890123,english@321,Loves poetry and public speaking,https://example.com/images/sneha.jpg

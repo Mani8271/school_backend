@@ -9,8 +9,11 @@ const { userAuth } = require("../../middlewares/auth");
 const StaffDailyAttendanceModel = require("../../models/StaffDailyAttendance");
 
 StaffMonthlyAttendanceRoute.get("/staff-monthly-attendance", userAuth, async (req, res) => {
+    console.log("✅ Received query params:", req.query);
+    // console.log("✅ Received body params:", req);
   try {
-    const { month, year, staffType } = req.body;
+
+      const { month, year, staffType } = req.query;
 
     if (!month || !year || !staffType) {
       return res.status(400).json({ error: "month, year and staffType are required in query parameters." });

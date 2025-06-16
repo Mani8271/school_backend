@@ -11,6 +11,7 @@ HolidaysRoute.post("/add-holiday", userAuth, async (req, res) => {
   try {
     const Addholiday = new HolidaysModel(req.body);
     await Addholiday.save();
+    const now = moment();
 
 const newNotification = new NotificationsModel({
         title: "New Holiday Added",
@@ -58,6 +59,7 @@ HolidaysRoute.patch("/update-holiday-data", userAuth, async (req, res) => {
     if (!updatedholiday) {
       return res.status(404).json({ error: "holiday not found" });
     }
+    const now = moment();
     const newNotification = new NotificationsModel({
             title: "Holiday Updated",
             description: `Holiday ${updatedholiday.name || holidayId} has been updated.`,

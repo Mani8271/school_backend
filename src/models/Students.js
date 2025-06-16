@@ -4,11 +4,11 @@ const mongoose = require("mongoose");
 const StudentsSchema = new mongoose.Schema({
     studentName: {
         type: String,
-        
+
     },
     gender: {
         type: String,
-        
+
         enum: ["male", "female", "Others"],
     },
     rollno:
@@ -17,55 +17,63 @@ const StudentsSchema = new mongoose.Schema({
     },
     parentName: {
         type: String,
-         
+
     },
     relation: {
         type: String,
-        
+
     },
     class: {
-        type:String,
-        
+        type: String,
+
     },
     section: {
         type: String,
-        
- 
+
+
     },
     address: {
         type: String,
-        
+
     },
     city: {
         type: String,
-        
+
     },
     dateofbirth: {
         type: Date, // Changed from String to Date
-        
+
     },
     email: {
         type: String,
-        unique:true,
+        unique: true,
         match: [/^\S+@\S+\.\S+$/, "Please enter a valid email address"], // Email validation
     },
     mobile: {
         type: String,
-        unique:true,
+        unique: true,
         match: [/^\d{10}$/, "Mobile number should be 10 digits"], // Mobile validation
     },
     password:
     {
         type: String,
-        
+
     },
     ProfilePicture:
     {
-      type:String,
+        type: String,
+    },
+    bloodgroup: {
+        type: String,
+
+    },
+    username: {
+        type: String,
+
     },
 },
-{
-  timestamps:true
-});
+    {
+        timestamps: true
+    });
 
 module.exports = mongoose.model("Students", StudentsSchema);

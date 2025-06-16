@@ -1,0 +1,5 @@
+studentId,studentName,examType,class,section,lang1,lang2,english,maths,science,social,grade,date,time
+ST001,Alice Johnson,Midterm,10,A,85,88,92,95,90,89,A,2023-05-15,10:30
+ST002,Bob Smith,Midterm,10,B,78,80,85,88,84,82,B,2023-05-15,11:00
+ST003,Catherine Lee,Final,10,A,90,92,94,97,93,91,A+,2023-12-20,14:00
+ST004,David Williams,Final,10,B,70,72,75,78,76,74,C,2023-12-20,14:30

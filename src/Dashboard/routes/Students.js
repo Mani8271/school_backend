@@ -169,7 +169,7 @@ StudentsRoute.patch("/update-student", userAuth, upload.single("ProfilePicture")
 
     // Save updated student data
     await student.save();
-const now = new Date();
+ const now = moment();
           const newNotification = new NotificationsModel({
             title: "Student Updated",
             description: `Student ${student.studentName || studentId} has been updated.`,
@@ -337,7 +337,7 @@ StudentsRoute.post("/forgot-password", async (req, res) => {
 });
 
 
-StudentsRoute.get("/bulk-upload", userAuth, upload.single("file"), async (req, res) => {
+StudentsRoute.post("/bulk-upload", userAuth, upload.single("file"), async (req, res) => {
   try {
       if (!req.file) {
           return res.status(400).json(errorResponse("No file uploaded"));

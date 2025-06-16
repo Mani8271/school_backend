@@ -14,6 +14,7 @@ BusListRoute.post("/add-bus", userAuth, async (req, res) => {
   try {
     const AddBus = new BusListModel(req.body);
     await AddBus.save();
+      const now = moment();
     const newNotification = new NotificationsModel({
       title: "New Bus Added",
       description: `New Bus ${
@@ -67,7 +68,7 @@ BusListRoute.patch("/update-bus-data", userAuth, async (req, res) => {
     // Save updated bus
     await bus.save();
 
-    const now = new Date();
+     const now = moment();
     const newNotification = new NotificationsModel({
       title: "Bus List Updated",
       description: `Bus ${bus.busNumber || busId} has been updated.`,

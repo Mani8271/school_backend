@@ -11,6 +11,7 @@ LeaveRequestRoute.post("/add-leave-approval",userAuth,async (req, res) => {
     try {
       const Addleaverequest = new LeaveRequestsModel(req.body);
       await Addleaverequest.save();
+      const now = moment();
 const newNotification = new NotificationsModel({
         title: "New Leave Approval Added",
         description: `New Leave Approval ${
@@ -59,7 +60,7 @@ LeaveRequestRoute.patch("/update-leave-approval-data", userAuth, async (req, res
     });
     // Save updated leaverequest
     await leaverequest.save();
-
+  const now = moment();
  const newNotification = new NotificationsModel({
             title: "Leave Approval Updated",
             description: `Leave Approval  ${updatedholiday.Name || leaverequestId} has been updated.`,

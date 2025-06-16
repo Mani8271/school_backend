@@ -11,7 +11,7 @@ FeesRoute.post("/add-fee",userAuth,async (req, res) => {
     try {
       const AddFees = new FeesModel(req.body);
       await AddFees.save();
-
+       const now = moment();
        const newNotification = new NotificationsModel({
                               title: "New Fees Added",
                               description: `New Fees${
@@ -63,6 +63,7 @@ FeesRoute.patch("/update-fee", userAuth, async (req, res) => {
 
     // Save updated 
     await fees.save();
+    const now = moment();
 
     const newNotification = new NotificationsModel({
                         title: "Fees Updated",
@@ -104,6 +105,7 @@ FeesRoute.delete("/delete-fee", userAuth, async (req, res) => {
       return res.status(400).json({ error: "Invalid ID format" });
     }
     await FeesModel.findByIdAndDelete(feesId);
+    const now = moment();
     const notification = new NotificationsModel({
                   title: " Fees Data Deleted",
                   description: ` Fees Data with ID ${feesId} has been deleted from the system.`,

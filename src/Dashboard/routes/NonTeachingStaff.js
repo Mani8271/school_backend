@@ -13,6 +13,17 @@ const jwt = require("jsonwebtoken");
 const moment = require("moment");
 const NotificationsModel = require("../../models/Notifications");
 const storagePath = path.join(__dirname, "../../../src/storage/userdp");
+const mongoose = require("mongoose");
+const successResponse = (message, data = {}) => ({
+  message,
+  data,
+});
+
+const errorResponse = (message, errors = []) => ({
+  message,
+  errors,
+});
+
 
 if (!fs.existsSync(storagePath)) {
   fs.mkdirSync(storagePath, { recursive: true });
@@ -163,7 +174,7 @@ NonTeachingStaffRoute.patch("/update-staff", userAuth, upload.single("ProfilePic
     // Save updated staff data
     await staff.save();
 
-    const now = new Date();
+    const now = moment();
           const newNotification = new NotificationsModel({
             title: "Staff Updated",
             description: `Staff ${staff.name || staffId} has been updated.`,

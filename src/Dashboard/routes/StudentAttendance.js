@@ -168,7 +168,8 @@ AttendanceRoute.get("/student-attendances", userAuth, async (req, res) => {
 
 AttendanceRoute.get("/student-monthly-attendance", userAuth, async (req, res) => {
   try {
-    const { month, year } = req.body;
+    const { month, year } = req.query;
+    console.log("Received month:", month, "and year:", year);
 
     if (!month || !year) {
       return res.status(400).json({
