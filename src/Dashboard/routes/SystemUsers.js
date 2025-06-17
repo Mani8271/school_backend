@@ -233,8 +233,8 @@ systemUserRoute.patch(
       await loggedinUser.save();
 
       // ✅ Create notification for admin
-      const now = new Date();
-      const notification = new Notification({
+      const now = moment();
+     const notification = new NotificationsModel({
         title: "User Profile Updated",
         description: `${loggedinUser.firstName} ${loggedinUser.lastName} updated their profile.`,
         date: now.format("YYYY-MM-DD"),

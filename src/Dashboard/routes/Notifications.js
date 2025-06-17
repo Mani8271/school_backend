@@ -7,13 +7,13 @@ const { userAuth } = require("../../middlewares/auth");
 
 NotificationsRoute.get("/all-notifications", userAuth, async (req, res) => {
   try {
-    const GetNotifications = await NotificationsModel.find();
+    const GetNotifications = await NotificationsModel.find().sort({ createdAt: -1 }); // 👈 sorted by newest
     res.send(GetNotifications);
-  }  catch (error) {
+  } catch (error) {
     console.error("❌ Error:", { message: error.message });
-  
+
     let msg = "notifications not found";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -22,9 +22,10 @@ NotificationsRoute.get("/all-notifications", userAuth, async (req, res) => {
     } else if (error.message) {
       msg = error.message;
     }
-  
+
     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
   }
 });
+
 
 module.exports = NotificationsRoute;

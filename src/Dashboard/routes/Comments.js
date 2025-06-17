@@ -41,7 +41,7 @@ CommentsRoute.post("/add-comment", userAuth, async (req, res) => {
 
     const newComment = new CommentsModel({ name, email, comment, blogId });
     await newComment.save();
-
+     const now = moment();
     const newNotification = new NotificationsModel({
       title: "New Comment Added",
       description: `New Comment${

@@ -129,7 +129,7 @@ BlogsRoute.patch(
       // Save updated blog
       await blog.save();
 
-      const now = new Date();
+      const now = new moment();
       const newNotification = new NotificationsModel({
         title: "Blog Updated",
         description: `Blog ${blog.title || blogId} has been updated.`,
