@@ -192,7 +192,7 @@ TeachersRoute.patch(
       await teacher.save();
 
       // --- Notification logic starts here ---
-      const now = new Date();
+      const now = moment();
       const newNotification = new NotificationsModel({
         title: "Teacher Updated",
         description: `Teacher ${teacher.name || teacherId} has been updated.`,

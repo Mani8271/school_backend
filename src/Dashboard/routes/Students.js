@@ -14,6 +14,17 @@ const moment = require("moment");
 const NotificationsModel = require("../../models/Notifications");
 
 const storagePath = path.join(__dirname, "../../../src/storage/studentimages");
+const successResponse = (message, data = {}) => ({
+  status: "success",
+  message,
+  data,
+});
+
+const errorResponse = (message, data = {}) => ({
+  status: "error",
+  errors: [message],
+  data,
+});
 
 if (!fs.existsSync(storagePath)) {
   fs.mkdirSync(storagePath, { recursive: true });
@@ -178,6 +189,7 @@ StudentsRoute.patch("/update-student", userAuth, upload.single("ProfilePicture")
           });
     
           await newNotification.save();
+          console.log("newNotification:", newNotification);
     return res.json({
       message: "Student data updated successfully",
       student,
@@ -337,48 +349,128 @@ StudentsRoute.post("/forgot-password", async (req, res) => {
 });
 
 
+// StudentsRoute.post("/bulk-upload", userAuth, upload.single("file"), async (req, res) => {
+//   try {
+//       if (!req.file) {
+//           return res.status(400).json(errorResponse("No file uploaded"));
+//       }
+
+//       const filePath = req.file.path;
+//       const students = [];
+
+//       await new Promise((resolve, reject) => {
+//           fs.createReadStream(filePath)
+//               .pipe(csv())
+//               .on("data", (row) => {
+//                   if (Object.values(row).some(value => value && value.trim() !== "")) {
+//                       row._id = row._id?.trim() || null;
+//                       students.push(row);
+//                   }
+//               })
+//               .on("end", resolve)
+//               .on("error", reject);
+//       });
+
+//       if (students.length === 0) {
+//           return res.status(400).json(errorResponse("CSV file is empty or invalid"));
+//       }
+
+//       await Promise.all(
+//           students.map(async (student) => {
+//               if (student._id) {
+//                   await StudentsModel.findOneAndUpdate({ _id: student._id }, student, { upsert: true });
+//               } else {
+//                   await StudentsModel.create(student);
+//               }
+//           })
+//       );
+
+//       return res.status(200).json(successResponse("Students uploaded successfully"));
+//   }catch (error) {
+//     console.error("❌ Error:", { message: error.message });
+  
+//     let msg = "An unexpected error occurred";
+  
+//     if (error.code === 11000) {
+//       const field = Object.keys(error.keyValue)[0];
+//       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
+//     } else if (error.name === "ValidationError") {
+//       msg = Object.values(error.errors).map(err => err.message).join(", ");
+//     } else if (error.message) {
+//       msg = error.message;
+//     }
+  
+//     res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+//   }
+// });
+// module.exports = StudentsRoute;
+
 StudentsRoute.post("/bulk-upload", userAuth, upload.single("file"), async (req, res) => {
   try {
-      if (!req.file) {
-          return res.status(400).json(errorResponse("No file uploaded"));
-      }
-
-      const filePath = req.file.path;
-      const students = [];
-
-      await new Promise((resolve, reject) => {
-          fs.createReadStream(filePath)
-              .pipe(csv())
-              .on("data", (row) => {
-                  if (Object.values(row).some(value => value && value.trim() !== "")) {
-                      row._id = row._id?.trim() || null;
-                      students.push(row);
-                  }
-              })
-              .on("end", resolve)
-              .on("error", reject);
+    if (!req.file) {
+      return res.status(400).json({
+        errors: ["No file uploaded"],
+        status: "unprocessable_entity",
       });
+    }
 
-      if (students.length === 0) {
-          return res.status(400).json(errorResponse("CSV file is empty or invalid"));
+    const filePath = req.file.path;
+    const students = [];
+
+    // Read and parse CSV
+    await new Promise((resolve, reject) => {
+      fs.createReadStream(filePath)
+        .pipe(csv({ skipEmptyLines: true, trim: true }))
+        .on("data", (row) => {
+  if (Object.values(row).some(value => value && value.trim() !== "")) {
+    row._id = row._id?.trim() || null;
+
+    // 🛠 Convert DD-MM-YYYY to YYYY-MM-DD and parse to Date
+    if (row.dateofbirth) {
+      const [dd, mm, yyyy] = row.dateofbirth.split("-");
+      if (dd && mm && yyyy) {
+        row.dateofbirth = new Date(`${yyyy}-${mm}-${dd}`);
       }
+    }
 
-      await Promise.all(
-          students.map(async (student) => {
-              if (student._id) {
-                  await StudentsModel.findOneAndUpdate({ _id: student._id }, student, { upsert: true });
-              } else {
-                  await StudentsModel.create(student);
-              }
-          })
-      );
+    students.push(row);
+  }
+})
+        .on("end", resolve)
+        .on("error", reject);
+    });
 
-      return res.status(200).json(successResponse("Students uploaded successfully"));
-  }catch (error) {
-    console.error("❌ Error:", { message: error.message });
-  
+    if (students.length === 0) {
+      return res.status(400).json({
+        errors: ["CSV file is empty or invalid"],
+        status: "unprocessable_entity",
+      });
+    }
+
+    // Upload or update each student
+    await Promise.all(
+      students.map(async (student) => {
+        if (student._id) {
+          await StudentsModel.findOneAndUpdate({ _id: student._id }, student, {
+            upsert: true,
+            runValidators: true,
+            new: true,
+          });
+        } else {
+          await StudentsModel.create(student);
+        }
+      })
+    );
+
+    return res.status(200).json({
+      message: "Students uploaded successfully",
+      status: "success",
+    });
+  } catch (error) {
+    console.error("❌ Error uploading students:", error);
+
     let msg = "An unexpected error occurred";
-  
+
     if (error.code === 11000) {
       const field = Object.keys(error.keyValue)[0];
       msg = `${field.charAt(0).toUpperCase() + field.slice(1)} already exists`;
@@ -387,8 +479,12 @@ StudentsRoute.post("/bulk-upload", userAuth, upload.single("file"), async (req, 
     } else if (error.message) {
       msg = error.message;
     }
-  
-    res.status(400).json({ errors: [msg], status: "unprocessable_entity" });
+
+    return res.status(400).json({
+      errors: [msg],
+      status: "unprocessable_entity",
+    });
   }
 });
+
 module.exports = StudentsRoute;
